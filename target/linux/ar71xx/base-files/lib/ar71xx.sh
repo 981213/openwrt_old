@@ -215,7 +215,7 @@ tplink_board_detect() {
 		model="TP-Link TL-WDR4900"
 		;;
 	"630000"*)
-		model="TP-Link TL-WDR6300"
+		model="TP-Link TL-WDR6300/Mercury MAC1200R"
 		;;
 	"83050803")
 		model="MERCURY MW305R 8M"
@@ -681,16 +681,16 @@ ar71xx_board_detect() {
 	*"TL-WDR6300")
 		name="tl-wdr6300"
 		;;
-    *"MW4530R")
-        name="mw4530r"
-        ;;
+	*"MW4530R")
+                name="mw4530r"
+                ;;
 	*"TL-WDR3600/4300/4310")
 		name="tl-wdr4300"
 		;;
 	*"TL-WDR4900 v2")
 		name="tl-wdr4900-v2"
 		;;
-	*TL-WR741ND)
+	*"TL-WR741ND")
 		name="tl-wr741nd"
 		;;
 	*"TL-WR741ND v4")
@@ -714,7 +714,7 @@ ar71xx_board_detect() {
 	*"TL-WR882N v1")
 		name="tl-wr882n-v1"
 		;;
-	*TL-WR941ND)
+	*"TL-WR941ND")
 		name="tl-wr941nd"
 		;;
 	*"TL-WR941ND v7")
