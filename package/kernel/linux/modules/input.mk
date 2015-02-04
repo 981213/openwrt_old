@@ -82,6 +82,9 @@ endef
 define KernelPackage/input-gpio-keys/description
  This driver implements support for buttons connected
  to GPIO pins of various CPUs (and some other chips).
+
+ See also gpio-button-hotplug which is an alternative, lower overhead
+ implementation that generates uevents instead of kernel input events.
 endef
 
 $(eval $(call KernelPackage,input-gpio-keys))
@@ -101,6 +104,9 @@ endef
 
 define KernelPackage/input-gpio-keys-polled/description
  Kernel module for support polled GPIO keys input device
+
+ See also gpio-button-hotplug which is an alternative, lower overhead
+ implementation that generates uevents instead of kernel input events.
 endef
 
 $(eval $(call KernelPackage,input-gpio-keys-polled))
@@ -157,7 +163,6 @@ define KernelPackage/input-matrixkmap
   SUBMENU:=$(INPUT_MODULES_MENU)
   TITLE:=Input matrix devices support
   KCONFIG:=CONFIG_INPUT_MATRIXKMAP
-  DEPENDS:=@!LINUX_3_3
   FILES:=$(LINUX_DIR)/drivers/input/matrix-keymap.ko
   AUTOLOAD:=$(call AutoProbe,matrix-keymap)
   $(call AddDepends/input)

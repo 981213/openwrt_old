@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2006-2012 OpenWrt.org
+# Copyright (C) 2006-2015 OpenWrt.org
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -13,7 +13,7 @@ WATCHDOG_DIR:=watchdog
 define KernelPackage/6lowpan-iphc
   USBMENU:=$(OTHER_MENU)
   TITLE:=6lowpan shared code
-  DEPENDS:=@!LINUX_3_3 @!LINUX_3_8 @!LINUX_3_10 @!LINUX_3_13
+  DEPENDS:=@!LINUX_3_8 @!LINUX_3_10 @!LINUX_3_13
   KCONFIG:=CONFIG_6LOWPAN_IPHC
   HIDDEN:=1
   FILES:=$(LINUX_DIR)/net/ieee802154/6lowpan_iphc.ko
@@ -29,7 +29,7 @@ $(eval $(call KernelPackage,6lowpan-iphc))
 define KernelPackage/bluetooth
   SUBMENU:=$(OTHER_MENU)
   TITLE:=Bluetooth support
-  DEPENDS:=@USB_SUPPORT +kmod-usb-core +kmod-crypto-hash +(!LINUX_3_3&&!LINUX_3_8&&!LINUX_3_10&&!LINUX_3_13):kmod-6lowpan-iphc
+  DEPENDS:=@USB_SUPPORT +kmod-usb-core +kmod-crypto-hash +(!LINUX_3_8&&!LINUX_3_10&&!LINUX_3_13):kmod-6lowpan-iphc
   KCONFIG:= \
 	CONFIG_BLUEZ \
 	CONFIG_BLUEZ_L2CAP \
@@ -68,6 +68,26 @@ define KernelPackage/bluetooth/description
 endef
 
 $(eval $(call KernelPackage,bluetooth))
+
+
+define KernelPackage/bluetooth_6lowpan
+  SUBMENU:=$(OTHER_MENU)
+  TITLE:=Bluetooth 6LoWPAN support
+  DEPENDS:=+kmod-bluetooth @!(LINUX_3_8||LINUX_3_10||LINUX_3_13||LINUX_3_14)
+  KCONFIG:= \
+  CONFIG_6LOWPAN=m \
+  CONFIG_BT_6LOWPAN=m
+  FILES:= \
+       $(LINUX_DIR)/net/bluetooth/bluetooth_6lowpan.ko \
+       $(LINUX_DIR)/net/6lowpan/6lowpan.ko
+       AUTOLOAD:=$(call AutoProbe,bluetooth)
+endef
+
+define KernelPackage/bluetooth_6lowpan/description
+ Kernel support for 6LoWPAN over Bluetooth Low Energy devices
+endef
+
+$(eval $(call KernelPackage,bluetooth_6lowpan))
 
 
 define KernelPackage/bluetooth-hci-h4p
@@ -211,7 +231,6 @@ $(eval $(call KernelPackage,gpio-pcf857x))
 
 define KernelPackage/iio-core
   SUBMENU:=$(OTHER_MENU)
-  DEPENDS:=@!LINUX_3_3 @!LINUX_3_6
   TITLE:=Industrial IO core
   KCONFIG:= \
 	CONFIG_IIO \
@@ -242,11 +261,9 @@ define KernelPackage/iio-ad799x
   KCONFIG:= \
 	CONFIG_AD799X_RING_BUFFER=y \
 	CONFIG_AD799X
-ifeq ($(strip $(call CompareKernelPatchVer,$(KERNEL_PATCHVER),ge,3.16.0)),1)
-  FILES:=$(LINUX_DIR)/drivers/iio/adc/ad799x.ko
-else
-  FILES:=$(LINUX_DIR)/drivers/staging/iio/adc/ad799x.ko
-endif
+  FILES:= \
+	$(LINUX_DIR)/drivers/staging/iio/adc/ad799x.ko@lt3.16 \
+	$(LINUX_DIR)/drivers/iio/adc/ad799x.ko@ge3.16
   AUTOLOAD:=$(call AutoLoad,56,ad799x)
 endef
 
@@ -495,20 +512,6 @@ endef
 $(eval $(call KernelPackage,booke-wdt))
 
 
-define KernelPackage/pwm
-  SUBMENU:=$(OTHER_MENU)
-  TITLE:=PWM generic API
-  KCONFIG:=CONFIG_GENERIC_PWM
-  FILES:=$(LINUX_DIR)/drivers/pwm/pwm.ko
-endef
-
-define KernelPackage/pwm/description
- Kernel module that implement a generic PWM API
-endef
-
-$(eval $(call KernelPackage,pwm))
-
-
 define KernelPackage/rtc-ds1307
   SUBMENU:=$(OTHER_MENU)
   TITLE:=Dallas/Maxim DS1307 (and compatible) RTC support
@@ -693,7 +696,7 @@ define KernelPackage/serial-8250
 	CONFIG_SERIAL_8250_SHARE_IRQ=y \
 	CONFIG_SERIAL_8250_DETECT_IRQ=n \
 	CONFIG_SERIAL_8250_RSA=n
-  FILES:=$(LINUX_DIR)/drivers/tty/serial/8250/8250$(if $(call kernel_patchver_ge,3.7),$(if $(call kernel_patchver_le,3.8),_core)).ko
+  FILES:=$(LINUX_DIR)/drivers/tty/serial/8250/8250$(if $(CONFIG_LINUX_3_8),_core).ko
 endef
 
 define KernelPackage/serial-8250/description
@@ -743,22 +746,18 @@ $(eval $(call KernelPackage,ikconfig))
 define KernelPackage/zram
   SUBMENU:=$(OTHER_MENU)
   TITLE:=ZRAM
-  DEPENDS:=@!LINUX_3_3 +kmod-lib-lzo
+  DEPENDS:=+kmod-lib-lzo @!TARGET_ep93xx +(!LINUX_3_8&&!LINUX_3_10&&!LINUX_3_13&&!LINUX_3_14):kmod-lib-lz4
   KCONFIG:= \
 	CONFIG_ZSMALLOC \
 	CONFIG_ZRAM \
 	CONFIG_ZRAM_DEBUG=n \
 	CONFIG_PGTABLE_MAPPING=n \
 	CONFIG_ZRAM_LZ4_COMPRESS=y
-ifeq ($(strip $(call CompareKernelPatchVer,$(KERNEL_PATCHVER),ge,3.14.0)),1)
-  FILES:=\
-	$(LINUX_DIR)/mm/zsmalloc.ko \
-	$(LINUX_DIR)/drivers/block/zram/zram.ko
-else
   FILES:= \
-	$(LINUX_DIR)/drivers/staging/zsmalloc/zsmalloc.ko \
-	$(LINUX_DIR)/drivers/staging/zram/zram.ko
-endif
+	$(LINUX_DIR)/drivers/staging/zsmalloc/zsmalloc.ko@lt3.14 \
+	$(LINUX_DIR)/drivers/staging/zram/zram.ko@lt3.14 \
+	$(LINUX_DIR)/mm/zsmalloc.ko@ge3.14 \
+	$(LINUX_DIR)/drivers/block/zram/zram.ko@ge3.14
   AUTOLOAD:=$(call AutoLoad,20,zsmalloc zram)
 endef
 

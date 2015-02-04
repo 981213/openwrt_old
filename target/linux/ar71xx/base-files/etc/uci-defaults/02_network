@@ -225,7 +225,8 @@ tl-wr842n-v2 |\
 wnr2000-v3 |\
 wnr2000-v4 |\
 wnr2200 |\
-wnr612-v2)
+wnr612-v2 |\
+wnr1000-v2)
 	ucidef_set_interfaces_lan_wan "eth1" "eth0"
 	ucidef_add_switch "switch0" "1" "1"
 	ucidef_add_switch_vlan "switch0" "1" "0 1 2 3 4"
@@ -326,6 +327,7 @@ tl-mr13u |\
 tl-mr3020 |\
 tl-mr3040 |\
 tl-mr3040-v2 |\
+tl-wa701nd-v2 |\
 tl-wa750re |\
 tl-wa850re |\
 tl-wa830re-v2 |\

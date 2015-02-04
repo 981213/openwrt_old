@@ -210,6 +210,7 @@ get_status_led() {
 	tl-mr3220-v2 | \
 	tl-mr3420 | \
 	tl-mr3420-v2 | \
+	tl-wa701nd-v2 | \
 	tl-wa801nd-v2 | \
 	tl-wa901nd | \
 	tl-wa901nd-v2 | \
@@ -261,6 +262,9 @@ get_status_led() {
 	uap-pro)
 		status_led="ubnt:white:dome"
 		;;
+	unifi-outdoor-plus)
+		status_led="ubnt:white:front"
+		;;
 	airgateway)
 		status_led="ubnt:white:status"
 		;;
@@ -284,7 +288,8 @@ get_status_led() {
 	wndr4300 | \
 	wnr2000 | \
 	wnr2200 |\
-	wnr612-v2)
+	wnr612-v2 |\
+	wnr1000-v2)
 		status_led="netgear:green:power"
 		;;
 	wp543)

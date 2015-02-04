@@ -42,6 +42,7 @@ drv_mac80211_init_device_config() {
 		greenfield \
 		short_gi_20 \
 		short_gi_40 \
+		max_amsdu \
 		dsss_cck_40
 }
 
@@ -132,6 +133,7 @@ mac80211_hostapd_setup_base() {
 			short_gi_40:1 \
 			tx_stbc:1 \
 			rx_stbc:3 \
+			max_amsdu:1 \
 			dsss_cck_40:1
 
 		ht_cap_mask=0
@@ -152,6 +154,7 @@ mac80211_hostapd_setup_base() {
 			RX-STBC1:0x300:0x100:1 \
 			RX-STBC12:0x300:0x200:1 \
 			RX-STBC123:0x300:0x300:1 \
+			MAX-AMSDU-7935:0x800::$max_amsdu \
 			DSSS_CCK-40:0x1000::$dsss_cck_40
 
 		ht_capab="$ht_capab$ht_capab_flags"
@@ -490,6 +493,38 @@ mac80211_setup_supplicant() {
 	wpa_supplicant_run "$ifname" ${hostapd_ctrl:+-H $hostapd_ctrl}
 }
 
+mac80211_setup_adhoc_htmode() {
+	case "$htmode" in
+		VHT20|HT20) ibss_htmode=HT20;;
+		HT40*|VHT40|VHT80|VHT160)
+			case "$hwmode" in
+				a)
+					case "$(( ($channel / 4) % 2 ))" in
+						1) ibss_htmode="HT40+" ;;
+						0) ibss_htmode="HT40-";;
+					esac
+				;;
+				*)
+					case "$htmode" in
+						HT40+) ibss_htmode="HT40+";;
+						HT40-) ibss_htmode="HT40-";;
+						*)
+							if [ "$channel" -lt 7 ]; then
+								ibss_htmode="HT40+"
+							else
+								ibss_htmode="HT40-"
+							fi
+						;;
+					esac
+				;;
+			esac
+			[ "$auto_channel" -gt 0 ] && ibss_htmode="HT40+"
+		;;
+		*) ibss_htmode="" ;;
+	esac
+
+}
+
 mac80211_setup_adhoc() {
 	json_get_vars bssid ssid key mcast_rate
 
@@ -522,35 +557,6 @@ mac80211_setup_adhoc() {
 
 	mcval=
 	[ -n "$mcast_rate" ] && wpa_supplicant_add_rate mcval "$mcast_rate"
-
-	case "$htmode" in
-		VHT20|HT20) ibss_htmode=HT20;;
-		HT40*|VHT40|VHT80|VHT160)
-			case "$hwmode" in
-				a)
-					case "$(( ($channel / 4) % 2 ))" in
-						1) ibss_htmode="HT40+" ;;
-						0) ibss_htmode="HT40-";;
-					esac
-				;;
-				*)
-					case "$htmode" in
-						HT40+) ibss_htmode="HT40+";;
-						HT40-) ibss_htmode="HT40-";;
-						*)
-							if [ "$channel" -lt 7 ]; then
-								ibss_htmode="HT40+"
-							else
-								ibss_htmode="HT40-"
-							fi
-						;;
-					esac
-				;;
-			esac
-			[ "$auto_channel" -gt 0 ] && ibss_htmode="HT40+"
-		;;
-		*) ibss_htmode="" ;;
-	esac
 
 	iw dev "$ifname" ibss join "$ssid" $freq $ibss_htmode fixed-freq $bssid \
 		${beacon_int:+beacon-interval $beacon_int} \
@@ -602,6 +608,7 @@ mac80211_setup_vif() {
 		;;
 		adhoc)
 			wireless_vif_parse_encryption
+			mac80211_setup_adhoc_htmode
 			if [ "$wpa" -gt 0 -o "$auto_channel" -gt 0 ]; then
 				mac80211_setup_supplicant || failed=1
 			else

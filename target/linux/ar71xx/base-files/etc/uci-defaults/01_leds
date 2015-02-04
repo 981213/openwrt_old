@@ -130,6 +130,11 @@ dir-615-e4)
 	ucidef_set_led_switch "lan4" "LAN4" "d-link:green:lan4" "switch0" "0x10"
 	;;
 
+dir-615-c1)
+	ucidef_set_led_netdev "wan" "WAN" "d-link:green:wan" "eth1"
+	ucidef_set_led_wlan "wlan" "WLAN" "d-link:green:wlan" "phy0tpt"
+	;;
+
 dir-825-b1)
 	ucidef_set_led_usbdev "usb" "USB" "d-link:blue:usb" "1-1"
 	;;
@@ -313,6 +318,11 @@ tl-wa850re)
 	ucidef_set_led_rssi "rssihigh" "RSSIHIGH" "tp-link:blue:signal5" "wlan0" "80" "100" "-79" "13"
 	;;
 
+tl-wa701nd-v2)
+	ucidef_set_led_netdev "lan" "LAN" "tp-link:green:lan" "eth0"
+	ucidef_set_led_wlan "wlan" "WLAN" "tp-link:green:wlan" "phy0tpt"
+	;;
+
 tl-wa860re)
 	ucidef_set_led_netdev "lan" "LAN" "tp-link:green:lan" "eth0"
 	ucidef_set_led_wlan "wlan" "WLAN" "tp-link:green:wlan" "phy0tpt"
@@ -337,6 +347,7 @@ tl-wdr3500)
 
 tl-wdr6300)
 	ucidef_set_led_wlan "wlan2g" "WLAN2G" "tp-link:green:wlan2g" "phy1tpt"
+	ucidef_set_led_netdev "wlan5g" "WLAN5G" "mercury:green:wlan5g" "wlan0"
 	;;
 
 mw4530r)

@@ -62,7 +62,7 @@ $(eval $(call KernelPackage,fs-autofs4))
 define KernelPackage/fs-btrfs
   SUBMENU:=$(FS_MENU)
   TITLE:=BTRFS filesystem support
-  DEPENDS:=+kmod-lib-crc32c +kmod-lib-lzo +kmod-lib-zlib +(!LINUX_3_3&&!LINUX_3_6&&!LINUX_3_8):kmod-lib-raid6 +(!LINUX_3_3&&!LINUX_3_6&&!LINUX_3_8):kmod-lib-xor
+  DEPENDS:=+kmod-lib-crc32c +kmod-lib-lzo +kmod-lib-zlib +!LINUX_3_8:kmod-lib-raid6 +!LINUX_3_8:kmod-lib-xor
   KCONFIG:=\
 	CONFIG_BTRFS_FS \
 	CONFIG_BTRFS_FS_POSIX_ACL=n \
@@ -96,7 +96,7 @@ define KernelPackage/fs-cifs
     +kmod-crypto-md4 \
     +kmod-crypto-des \
     +kmod-crypto-ecb \
-    +!LINUX_3_3&&!LINUX_3_6:kmod-crypto-sha256
+    +kmod-crypto-sha256
 endef
 
 define KernelPackage/fs-cifs/description
@@ -163,7 +163,7 @@ define KernelPackage/fs-ext4
 	$(LINUX_DIR)/fs/jbd2/jbd2.ko \
 	$(LINUX_DIR)/fs/mbcache.ko
   AUTOLOAD:=$(call AutoLoad,30,mbcache jbd2 ext4,1)
-  $(call AddDepends/crc16, +!LINUX_3_3:kmod-crypto-hash)
+  $(call AddDepends/crc16, +kmod-crypto-hash)
 endef
 
 define KernelPackage/fs-ext4/description
@@ -176,11 +176,12 @@ $(eval $(call KernelPackage,fs-ext4))
 define KernelPackage/fs-f2fs
   SUBMENU:=$(FS_MENU)
   TITLE:=F2FS filesystem support
-  DEPENDS:=@!LINUX_3_3
   KCONFIG:= \
 	CONFIG_F2FS_FS \
 	CONFIG_F2FS_STAT_FS=y \
-	CONFIG_F2FS_FS_XATTR=n \
+	CONFIG_F2FS_FS_XATTR=y \
+	CONFIG_F2FS_FS_POSIX_ACL=n \
+	CONFIG_F2FS_FS_SECURITY=n \
 	CONFIG_F2FS_CHECK_FS=n
   FILES:=$(LINUX_DIR)/fs/f2fs/f2fs.ko
   AUTOLOAD:=$(call AutoLoad,30,f2fs,1)
@@ -297,14 +298,9 @@ define KernelPackage/fs-nfs
 	CONFIG_NFS_FS \
 	CONFIG_NFS_USE_LEGACY_DNS=n \
 	CONFIG_NFS_USE_NEW_IDMAPPER=n
-ifeq ($(strip $(call CompareKernelPatchVer,$(KERNEL_PATCHVER),ge,3.6.0)),1)
   FILES:= \
 	$(LINUX_DIR)/fs/nfs/nfs.ko \
 	$(LINUX_DIR)/fs/nfs/nfsv3.ko
-else
-  FILES:= \
-	$(LINUX_DIR)/fs/nfs/nfs.ko
-endif
   AUTOLOAD:=$(call AutoLoad,40,nfs nfsv3)
 endef
 
@@ -320,11 +316,13 @@ define KernelPackage/fs-nfs-common
   TITLE:=Common NFS filesystem modules
   KCONFIG:= \
 	CONFIG_LOCKD \
-	CONFIG_SUNRPC
+	CONFIG_SUNRPC \
+	CONFIG_GRACE_PERIOD@ge3.18
   FILES:= \
 	$(LINUX_DIR)/fs/lockd/lockd.ko \
-	$(LINUX_DIR)/net/sunrpc/sunrpc.ko
-  AUTOLOAD:=$(call AutoLoad,30,sunrpc lockd)
+	$(LINUX_DIR)/net/sunrpc/sunrpc.ko \
+	$(LINUX_DIR)/fs/nfs_common/grace.ko@ge3.18
+  AUTOLOAD:=$(call AutoLoad,30,grace@ge3.18 sunrpc lockd)
 endef
 
 $(eval $(call KernelPackage,fs-nfs-common))

@@ -19,7 +19,7 @@ Signed-off-by: Felix Fietkau <nbd@openwrt.org>
 
 --- a/arch/mips/Kconfig
 +++ b/arch/mips/Kconfig
-@@ -1620,6 +1620,9 @@ config SYS_HAS_CPU_XLR
+@@ -1621,6 +1621,9 @@ config SYS_HAS_CPU_XLR
  config SYS_HAS_CPU_XLP
  	bool
  
