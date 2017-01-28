@@ -99,7 +99,7 @@ menuconfig INITOPT
 	config TARGET_INIT_PATH
 		string
 		prompt "PATH for regular boot" if INITOPT
-		default "/bin:/sbin:/usr/bin:/usr/sbin"
+		default "/usr/sbin:/usr/bin:/sbin:/bin"
 		help
 			Default PATH used during normal operation
 
@@ -195,6 +195,13 @@ if VERSIONOPT
 		prompt "Manufacturer name"
 		help
 			This is the manufacturer name embedded in /etc/device_info
+			Useful for OEMs building OpenWrt based firmware
+
+	config VERSION_MANUFACTURER_URL
+		string
+		prompt "Manufacturer URL"
+		help
+			This is an URL to the manufacturer's website embedded in /etc/device_info
 			Useful for OEMs building OpenWrt based firmware
 
 	config VERSION_PRODUCT

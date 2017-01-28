@@ -17,7 +17,7 @@
 			m25p80@0 {
 				#address-cells = <1>;
 				#size-cells = <1>;
-				compatible = "s25sl12801";
+				compatible = "jedec,spi-nor";
 				reg = <0 0>;
 				linux,modalias = "m25p80", "s25sl12801";
 				spi-max-frequency = <10000000>;
@@ -80,7 +80,7 @@
 	};
 
 	esw@10110000 {
-		ralink,portmap = <0x1e>;
+		mediatek,portmap = <0x1e>;
 	};
 
 	wmac@10180000 {

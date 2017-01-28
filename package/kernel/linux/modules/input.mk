@@ -75,7 +75,7 @@ define KernelPackage/input-gpio-keys
 	CONFIG_KEYBOARD_GPIO \
 	CONFIG_INPUT_KEYBOARD=y
   FILES:=$(LINUX_DIR)/drivers/input/keyboard/gpio_keys.ko
-  AUTOLOAD:=$(call AutoProbe,gpio_keys)
+  AUTOLOAD:=$(call AutoProbe,gpio_keys,1)
 endef
 
 define KernelPackage/input-gpio-keys/description
@@ -171,22 +171,6 @@ define KernelPackage/input-matrix/description
 endef
 
 $(eval $(call KernelPackage,input-matrixkmap))
-
-
-define KernelPackage/acpi-button
-  SUBMENU:=$(INPUT_MODULES_MENU)
-  TITLE:=ACPI Button Support
-  DEPENDS:=@(TARGET_x86_generic||TARGET_x86_kvm_guest||TARGET_x86_xen_domu||TARGET_x86_64) +kmod-input-evdev
-  KCONFIG:=CONFIG_ACPI_BUTTON
-  FILES:=$(LINUX_DIR)/drivers/acpi/button.ko
-  AUTOLOAD:=$(call AutoLoad,06,button)
-endef
-
-define KernelPackage/acpi-button/description
- Kernel module for ACPI Button support
-endef
-
-$(eval $(call KernelPackage,acpi-button))
 
 
 define KernelPackage/keyboard-imx

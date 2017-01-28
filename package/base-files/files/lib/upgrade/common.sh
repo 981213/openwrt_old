@@ -48,13 +48,14 @@ supivot() { # <new_root> <old_root>
 
 run_ramfs() { # <command> [...]
 	install_bin /bin/busybox /bin/ash /bin/sh /bin/mount /bin/umount	\
-		/sbin/pivot_root /usr/bin/wget /sbin/reboot /bin/sync /bin/dd	\
-		/bin/grep /bin/cp /bin/mv /bin/tar /usr/bin/md5sum "/usr/bin/["	\
-		/bin/dd /bin/vi /bin/ls /bin/cat /usr/bin/awk /usr/bin/hexdump	\
+		/sbin/pivot_root /sbin/reboot /bin/sync /bin/dd	/bin/grep       \
+		/bin/cp /bin/mv /bin/tar /usr/bin/md5sum "/usr/bin/[" /bin/dd	\
+		/bin/vi /bin/ls /bin/cat /usr/bin/awk /usr/bin/hexdump		\
 		/bin/sleep /bin/zcat /usr/bin/bzcat /usr/bin/printf /usr/bin/wc \
 		/bin/cut /usr/bin/printf /bin/sync /bin/mkdir /bin/rmdir	\
 		/bin/rm /usr/bin/basename /bin/kill /bin/chmod
 
+	install_bin /bin/uclient-fetch /bin/wget
 	install_bin /sbin/mtd
 	install_bin /sbin/mount_root
 	install_bin /sbin/snapshot
@@ -67,6 +68,7 @@ run_ramfs() { # <command> [...]
 	install_bin /usr/sbin/ubirsvol
 	install_bin /usr/sbin/ubirmvol
 	install_bin /usr/sbin/ubimkvol
+	install_bin /usr/sbin/partx
 	for file in $RAMFS_COPY_BIN; do
 		install_bin ${file//:/ }
 	done
@@ -184,14 +186,14 @@ get_image() { # <source> [ <command> ]
 		*) cmd="cat";;
 	esac
 	if [ -z "$conc" ]; then
-		local magic="$(eval $cmd $from 2>/dev/null | dd bs=2 count=1 2>/dev/null | hexdump -n 2 -e '1/1 "%02x"')"
+		local magic="$(eval $cmd \"$from\" 2>/dev/null | dd bs=2 count=1 2>/dev/null | hexdump -n 2 -e '1/1 "%02x"')"
 		case "$magic" in
 			1f8b) conc="zcat";;
 			425a) conc="bzcat";;
 		esac
 	fi
 
-	eval "$cmd $from 2>/dev/null ${conc:+| $conc}"
+	eval "$cmd \"$from\" 2>/dev/null ${conc:+| $conc}"
 }
 
 get_magic_word() {

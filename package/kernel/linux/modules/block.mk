@@ -377,7 +377,7 @@ $(eval $(call KernelPackage,md-raid10))
 
 
 define KernelPackage/md-raid456
-$(call KernelPackage/md/Depends,+kmod-lib-raid6 +kmod-lib-xor)
+$(call KernelPackage/md/Depends,+kmod-lib-raid6 +kmod-lib-xor +LINUX_4_4:kmod-lib-crc32c)
   TITLE:=RAID Level 456 Driver
   KCONFIG:= \
        CONFIG_ASYNC_CORE \
@@ -654,3 +654,17 @@ define KernelPackage/scsi-cdrom
 endef
 
 $(eval $(call KernelPackage,scsi-cdrom))
+
+
+define KernelPackage/scsi-tape
+  SUBMENU:=$(BLOCK_MENU)
+  TITLE:=Kernel support for scsi tape drives
+  DEPENDS:=+kmod-scsi-core
+  KCONFIG:= \
+    CONFIG_CHR_DEV_ST
+  FILES:= \
+    $(LINUX_DIR)/drivers/scsi/st.ko
+  AUTOLOAD:=$(call AutoLoad,45,st)
+endef
+
+$(eval $(call KernelPackage,scsi-tape))

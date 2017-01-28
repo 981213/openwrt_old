@@ -7,22 +7,23 @@
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/target.mk
 
-PKG_NAME:=uClibc
 PKG_VERSION:=$(call qstrip,$(CONFIG_UCLIBC_VERSION))
-PKG_SOURCE_URL:=http://www.uclibc.org/downloads
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
-LIBC_SO_VERSION:=$(PKG_VERSION)
-PATCH_DIR:=$(PATH_PREFIX)/patches-$(PKG_VERSION)
-CONFIG_DIR:=$(PATH_PREFIX)/config-$(PKG_VERSION)
 
-PKG_MD5SUM_0.9.33.2 = a338aaffc56f0f5040e6d9fa8a12eda1
-PKG_MD5SUM=$(PKG_MD5SUM_$(PKG_VERSION))
+PKG_NAME:=uClibc-ng
+PKG_SOURCE_URL = http://downloads.uclibc-ng.org/releases/$(PKG_VERSION)/
+PATCH_DIR:=$(PATH_PREFIX)/patches
+CONFIG_DIR:=$(PATH_PREFIX)/config
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
+LIBC_SO_VERSION:=$(PKG_VERSION)
+
+PKG_MD5SUM=64bbe13301ffa6ba30c5c1ddec335583
 
 HOST_BUILD_DIR:=$(BUILD_DIR_TOOLCHAIN)/$(PKG_NAME)-$(PKG_VERSION)
 
 include $(INCLUDE_DIR)/toolchain-build.mk
 
 UCLIBC_TARGET_ARCH:=$(shell echo $(ARCH) | sed -e s'/-.*//' \
+		-e 's/arc.*/arc/' \
 		-e 's/i.86/i386/' \
 		-e 's/sparc.*/sparc/' \
 		-e 's/arm.*/arm/g' \
@@ -40,8 +41,9 @@ GEN_CONFIG=$(SCRIPT_DIR)/kconfig.pl -n \
 	$(if $(CONFIG_UCLIBC_ENABLE_DEBUG),$(if $(wildcard $(CONFIG_DIR)/debug),'+' $(CONFIG_DIR)/debug)) \
 	$(CONFIG_DIR)/$(ARCH)$(strip \
 		$(if $(wildcard $(CONFIG_DIR)/$(ARCH).$(BOARD)),.$(BOARD), \
+			$(if $(filter archs,$(subst ",,$(CONFIG_CPU_TYPE))),hs, \
 			$(if $(CONFIG_MIPS64_ABI),.$(subst ",,$(CONFIG_MIPS64_ABI)), \
-			$(if $(CONFIG_HAS_SPE_FPU),$(if $(wildcard $(CONFIG_DIR)/$(ARCH).e500),.e500)))))
+			$(if $(CONFIG_HAS_SPE_FPU),$(if $(wildcard $(CONFIG_DIR)/$(ARCH).e500),.e500))))))
 
 CPU_CFLAGS = \
 	-funsigned-char -fno-builtin -fno-asm \

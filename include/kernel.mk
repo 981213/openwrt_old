@@ -62,15 +62,17 @@ endif
 
 ifneq (,$(findstring uml,$(BOARD)))
   LINUX_KARCH=um
-else ifneq (,$(findstring $(ARCH), aarch64 aarch64_be))
+else ifneq (,$(findstring $(ARCH) , aarch64 aarch64_be ))
   LINUX_KARCH := arm64
-else ifneq (,$(findstring $(ARCH), armeb))
+else ifneq (,$(findstring $(ARCH) , arceb ))
+  LINUX_KARCH := arc
+else ifneq (,$(findstring $(ARCH) , armeb ))
   LINUX_KARCH := arm
-else ifneq (,$(findstring $(ARCH), mipsel mips64 mips64el))
+else ifneq (,$(findstring $(ARCH) , mipsel mips64 mips64el ))
   LINUX_KARCH := mips
-else ifneq (,$(findstring $(ARCH), sh2 sh3 sh4))
+else ifneq (,$(findstring $(ARCH) , sh2 sh3 sh4 ))
   LINUX_KARCH := sh
-else ifneq (,$(findstring $(ARCH), i386 x86_64))
+else ifneq (,$(findstring $(ARCH) , i386 x86_64 ))
   LINUX_KARCH := x86
 else
   LINUX_KARCH := $(ARCH)
@@ -88,7 +90,7 @@ define ModuleAutoLoad
 		mods="$$$$$$$$1"; \
 		boot="$$$$$$$$2"; \
 		shift 2; \
-		for mod in $$$$$$$$mods; do \
+		for mod in $(sort $$$$$$$$mods); do \
 			mkdir -p $(2)/etc/modules.d; \
 			echo "$$$$$$$$mod" >> $(2)/etc/modules.d/$(1); \
 		done; \
@@ -105,7 +107,7 @@ define ModuleAutoLoad
 		mods="$$$$$$$$2"; \
 		boot="$$$$$$$$3"; \
 		shift 3; \
-		for mod in $$$$$$$$mods; do \
+		for mod in $(sort $$$$$$$$mods); do \
 			mkdir -p $(2)/etc/modules.d; \
 			echo "$$$$$$$$mod" >> $(2)/etc/modules.d/$$$$$$$$priority-$(1); \
 		done; \
@@ -153,6 +155,7 @@ define KernelPackage
     DESCRIPTION:=$(DESCRIPTION)
     EXTRA_DEPENDS:=kernel (=$(LINUX_VERSION)-$(LINUX_RELEASE)-$(LINUX_VERMAGIC))
     VERSION:=$(LINUX_VERSION)$(if $(PKG_VERSION),+$(PKG_VERSION))-$(if $(PKG_RELEASE),$(PKG_RELEASE),$(LINUX_RELEASE))
+    PACKAGE_SUBDIR:=$(if $(FEED),$(FEED),kernel)
     $(call KernelPackage/$(1))
     $(call KernelPackage/$(1)/$(BOARD))
   endef
@@ -178,7 +181,7 @@ $(call KernelPackage/$(1)/config)
   $(call KernelPackage/depends)
 
   ifneq ($(if $(filter-out %=y %=n %=m,$(KCONFIG)),$(filter m y,$(foreach c,$(filter-out %=y %=n %=m,$(KCONFIG)),$($(c)))),.),)
-    ifneq ($(if $(SDK),$(filter-out $(LINUX_DIR)/%.ko,$(FILES)),$(strip $(FILES))),)
+    ifneq ($(strip $(FILES)),)
       define Package/kmod-$(1)/install
 		  @for mod in $$(call version_filter,$$(FILES)); do \
 			if grep -q "$$$$$$$${mod##$(LINUX_DIR)/}" "$(LINUX_DIR)/modules.builtin"; then \

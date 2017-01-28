@@ -15,6 +15,7 @@
 
 	aliases {
 		spi0 = &spi0;
+		spi1 = &spi1;
 	};
 
 	cpuintc: cpuintc@0 {
@@ -166,7 +167,7 @@
 
 		spi0: spi@b00 {
 			compatible = "ralink,rt3883-spi", "ralink,rt2880-spi";
-			reg = <0xb00 0x100>;
+			reg = <0xb00 0x40>;
 			#address-cells = <1>;
 			#size-cells = <0>;
 
@@ -175,6 +176,21 @@
 
 			pinctrl-names = "default";
 			pinctrl-0 = <&spi_pins>;
+
+			status = "disabled";
+		};
+
+		spi1: spi@b40 {
+			compatible = "ralink,rt3883-spi", "ralink,rt2880-spi";
+			reg = <0xb40 0x60>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			resets = <&rstctrl 18>;
+			reset-names = "spi";
+
+			pinctrl-names = "default";
+			pinctrl-0 = <&spi_cs1>;
 
 			status = "disabled";
 		};
@@ -212,6 +228,13 @@
 			};
 		};
 
+		spi_cs1: spi1 {
+			spi1 {
+				ralink,group = "spi_cs1";
+				ralink,function = "spi_cs1";
+			};
+		};
+
 		uartlite_pins: uartlite {
 			uart {
 				ralink,group = "uartlite";
@@ -231,7 +254,7 @@
 		interrupts = <5>;
 
 		port@0 {
-			compatible = "ralink,rt3883-port", "ralink,eth-port";
+			compatible = "ralink,rt3883-port", "mediatek,eth-port";
 			reg = <0>;
 		};
 
@@ -335,7 +358,7 @@
 	};
 
 	usbphy: usbphy {
-		compatible = "ralink,rt3xxx-usbphy";
+		compatible = "ralink,rt3352-usbphy";
 		#phy-cells = <1>;
 
 		resets = <&rstctrl 22 &rstctrl 25>;
@@ -353,7 +376,7 @@
 	};
 
 	ehci@101c0000 {
-		compatible = "ralink,rt3xxx-ehci", "ehci-platform";
+		compatible = "generic-ehci";
 		reg = <0x101c0000 0x1000>;
 
 		phys = <&usbphy 1>;
@@ -366,7 +389,7 @@
 	};
 
 	ohci@101c1000 {
-		compatible = "ralink,rt3xxx-ohci", "ohci-platform";
+		compatible = "generic-ohci";
 		reg = <0x101c1000 0x1000>;
 
 		phys = <&usbphy 1>;

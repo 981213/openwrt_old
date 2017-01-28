@@ -279,6 +279,23 @@ endef
 
 $(eval $(call KernelPackage,usb-serial-gadget))
 
+define KernelPackage/usb-mass-storage-gadget
+  TITLE:=USB Mass Storage support
+  KCONFIG:=CONFIG_USB_MASS_STORAGE
+  DEPENDS:=+kmod-usb-gadget +kmod-usb-lib-composite
+  FILES:= \
+	$(LINUX_DIR)/drivers/usb/gadget/function/usb_f_mass_storage.ko \
+	$(LINUX_DIR)/drivers/usb/gadget/legacy/g_mass_storage.ko
+  AUTOLOAD:=$(call AutoLoad,52,usb_f_mass_storage g_mass_storage)
+  $(call AddDepends/usb)
+endef
+
+define KernelPackage/usb-mass-storage-gadget/description
+  Kernel support for USB Gadget Mass Storage
+endef
+
+$(eval $(call KernelPackage,usb-mass-storage-gadget))
+
 
 define KernelPackage/usb-uhci
   TITLE:=Support for UHCI controllers
@@ -348,9 +365,8 @@ $(eval $(call KernelPackage,usb-ohci-pci))
 define KernelPackage/usb2-fsl
   TITLE:=Support for Freescale USB2 controllers
   DEPENDS:=@TARGET_mpc85xx
-  KCONFIG:=\
-	CONFIG_USB_FSL_MPH_DR_OF \
-  	CONFIG_USB_EHCI_FSL=y
+  HIDDEN:=1
+  KCONFIG:=CONFIG_USB_FSL_MPH_DR_OF
   FILES:=$(LINUX_DIR)/drivers/usb/host/fsl-mph-dr-of.ko
   AUTOLOAD:=$(call AutoLoad,39,fsl-mph-dr-of,1)
   $(call AddDepends/usb)
@@ -420,7 +436,8 @@ define KernelPackage/usb2
 	CONFIG_USB_OCTEON_EHCI=y \
 	CONFIG_USB_EHCI_HCD_ORION=y \
 	CONFIG_USB_EHCI_HCD_PLATFORM=y \
-	CONFIG_USB_EHCI_HCD_AT91=y
+	CONFIG_USB_EHCI_HCD_AT91=y \
+	CONFIG_USB_EHCI_FSL
   FILES:= \
 	$(LINUX_DIR)/drivers/usb/host/ehci-hcd.ko \
 	$(LINUX_DIR)/drivers/usb/host/ehci-platform.ko
@@ -430,7 +447,10 @@ define KernelPackage/usb2
   ifneq ($(wildcard $(LINUX_DIR)/drivers/usb/host/ehci-atmel.ko),)
     FILES+=$(LINUX_DIR)/drivers/usb/host/ehci-atmel.ko
   endif
-  AUTOLOAD:=$(call AutoLoad,40,ehci-hcd ehci-platform ehci-orion ehci-atmel,1)
+  ifneq ($(wildcard $(LINUX_DIR)/drivers/usb/host/ehci-fsl.ko),)
+    FILES+=$(LINUX_DIR)/drivers/usb/host/ehci-fsl.ko
+  endif
+  AUTOLOAD:=$(call AutoLoad,40,ehci-hcd ehci-platform ehci-orion ehci-atmel ehci-fsl,1)
   $(call AddDepends/usb)
 endef
 
@@ -459,18 +479,19 @@ $(eval $(call KernelPackage,usb2-pci))
 
 define KernelPackage/usb-dwc2
   TITLE:=DWC2 USB controller driver
-  DEPENDS:=+(TARGET_brcm2708||TARGET_at91||TARGET_brcm63xx||TARGET_mxs||TARGET_imx6):kmod-usb-gadget
+  DEPENDS:=+(TARGET_brcm2708||TARGET_at91||TARGET_brcm63xx||TARGET_mxs||TARGET_imx6||TARGET_omap):kmod-usb-gadget
   KCONFIG:= \
 	CONFIG_USB_DWC2 \
 	CONFIG_USB_DWC2_PCI \
 	CONFIG_USB_DWC2_PLATFORM \
 	CONFIG_USB_DWC2_DEBUG=n \
 	CONFIG_USB_DWC2_VERBOSE=n \
-	CONFIG_USB_DWC2_TRACK_MISSED_SOFS=n
+	CONFIG_USB_DWC2_TRACK_MISSED_SOFS=n \
+	CONFIG_USB_DWC2_DEBUG_PERIODIC=n
   FILES:= \
 	$(LINUX_DIR)/drivers/usb/dwc2/dwc2.ko \
-	$(LINUX_DIR)/drivers/usb/dwc2/dwc2_platform.ko
-  AUTOLOAD:=$(call AutoLoad,54,dwc2 dwc2_platform,1)
+	$(LINUX_DIR)/drivers/usb/dwc2/dwc2_platform.ko@lt4.3
+  AUTOLOAD:=$(call AutoLoad,54,dwc2 dwc2_platform@lt4.3,1)
   $(call AddDepends/usb)
 endef
 
@@ -556,6 +577,7 @@ define KernelPackage/usb-audio
   TITLE:=Support for USB audio devices
   KCONFIG:= \
 	CONFIG_USB_AUDIO \
+	CONFIG_SND_USB=y \
 	CONFIG_SND_USB_AUDIO
   $(call AddDepends/usb)
   $(call AddDepends/sound)
@@ -1297,6 +1319,21 @@ endef
 $(eval $(call KernelPackage,usb-net-rtl8152))
 
 
+define KernelPackage/usb-net-sr9700
+  TITLE:=Support for CoreChip SR9700 ethernet devices
+  KCONFIG:=CONFIG_USB_NET_SR9700
+  FILES:=$(LINUX_DIR)/drivers/$(USBNET_DIR)/sr9700.ko
+  AUTOLOAD:=$(call AutoProbe,sr9700)
+  $(call AddDepends/usb-net)
+endef
+
+define KernelPackage/usb-net-sr9700/description
+ Kernel module for CoreChip-sz SR9700 based USB 1.1 10/100 ethernet devices
+endef
+
+$(eval $(call KernelPackage,usb-net-sr9700))
+
+
 define KernelPackage/usb-net-rndis
   TITLE:=Support for RNDIS connections
   KCONFIG:=CONFIG_USB_NET_RNDIS_HOST
@@ -1559,7 +1596,11 @@ endef
 
 $(eval $(call KernelPackage,usbmon))
 
-XHCI_FILES := $(wildcard $(patsubst %,$(LINUX_DIR)/drivers/usb/host/%.ko,xhci-hcd xhci-pci xhci-plat-hcd))
+XHCI_MODULES := xhci-hcd xhci-pci xhci-plat-hcd
+ifdef CONFIG_TARGET_ramips_mt7621
+  XHCI_MODULES += xhci-mtk
+endif
+XHCI_FILES := $(wildcard $(patsubst %,$(LINUX_DIR)/drivers/usb/host/%.ko,$(XHCI_MODULES)))
 XHCI_AUTOLOAD := $(patsubst $(LINUX_DIR)/drivers/usb/host/%.ko,%,$(XHCI_FILES))
 
 define KernelPackage/usb3
@@ -1572,6 +1613,7 @@ define KernelPackage/usb3
 	CONFIG_USB_XHCI_PCI \
 	CONFIG_USB_XHCI_PLATFORM \
 	CONFIG_USB_XHCI_MVEBU=y \
+	CONFIG_USB_XHCI_MTK \
 	CONFIG_USB_XHCI_HCD_DEBUGGING=n
   FILES:= \
 	$(XHCI_FILES)

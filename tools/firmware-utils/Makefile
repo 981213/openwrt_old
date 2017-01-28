@@ -32,7 +32,7 @@ define Host/Compile
 	$(call cc,mkzynfw)
 	$(call cc,lzma2eva,-lz)
 	$(call cc,mkcasfw)
-	$(call cc,mkfwimage,-lz)
+	$(call cc,mkfwimage,-lz -Wall)
 	$(call cc,mkfwimage2,-lz)
 	$(call cc,imagetag imagetag_cmdline cyg_crc32)
 	$(call cc,add_header)
@@ -40,7 +40,7 @@ define Host/Compile
 	$(call cc,encode_crc)
 	$(call cc,nand_ecc)
 	$(call cc,mkplanexfw sha1)
-	$(call cc,mktplinkfw md5)
+	$(call cc,mktplinkfw md5, -Wall)
 	$(call cc,mktplinkfw2 md5)
 	$(call cc,tplink-safeloader md5, -Wall)
 	$(call cc,pc1crypt)
@@ -64,6 +64,7 @@ define Host/Compile
 	$(call cc,mkdapimg)
 	$(call cc, mkcameofw, -Wall)
 	$(call cc,seama md5)
+	$(call cc,oseama md5, -Wall)
 	$(call cc,fix-u-media-header cyg_crc32,-Wall)
 	$(call cc,hcsmakeimage bcmalgo)
 	$(call cc,mkporayfw, -Wall)
@@ -73,6 +74,8 @@ define Host/Compile
 	$(call cc,mkrtn56uimg, -lz)
 	$(call cc,dgn3500sum)
 	$(call cc,edimax_fw_header, -Wall)
+	$(call cc,mkmerakifw sha1, -Wall)
+	$(call cc,jcgimage, -lz -Wall)
 endef
 
 define Host/Install

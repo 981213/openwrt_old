@@ -21,7 +21,7 @@
 			m25p80@0 {
 				#address-cells = <1>;
 				#size-cells = <1>;
-				compatible = "en25q64";
+				compatible = "jedec,spi-nor";
 				reg = <0 0>;
 				linux,modalias = "m25p80", "mx25l6405d";
 				spi-max-frequency = <10000000>;
@@ -73,7 +73,7 @@
 		pinctrl-names = "default";
 		pinctrl-0 = <&ephy_pins>;
 		mtd-mac-address = <&rom 0xf100>;
-		ralink,port-map = "wllll";
+		mediatek,portmap = "wllll";
 	};
 
 	ehci@101c0000 {
@@ -85,7 +85,7 @@
 	};
 
 	gsw@10110000 {
-		ralink,port4 = "ephy";
+		mediatek,port4 = "ephy";
 	};
 
 	wmac@10180000 {

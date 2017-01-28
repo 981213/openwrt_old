@@ -34,8 +34,10 @@ platform_check_image() {
 	broadway|\
 	carambola|\
 	cf-wr800n|\
+	cs-qr10|\
 	d105|\
 	dap-1350|\
+	db-wrt01|\
 	dcs-930|\
 	dcs-930l-b1|\
 	dir-300-b1|\
@@ -50,17 +52,26 @@ platform_check_image() {
 	dir-810l|\
 	e1700|\
 	esr-9753|\
+	ex2700|\
 	f7c027|\
 	firewrt|\
 	fonera20n|\
 	freestation5|\
+	gl-mt300a|\
+	gl-mt300n|\
+	gl-mt750|\
+	hc5*61|\
 	hg255d|\
-	hiwifi-hc5761 |\
 	hlk-rm04|\
 	hpm|\
 	ht-tm02|\
 	hw550-3g|\
 	ip2202|\
+	jhr-n805r|\
+	jhr-n825r|\
+	jhr-n926r|\
+	linkits7688|\
+	linkits7688d|\
 	m2m|\
 	m3|\
 	m4|\
@@ -68,18 +79,24 @@ platform_check_image() {
 	miniembplug|\
 	miniembwifi|\
 	miwifi-mini|\
+	miwifi-nano|\
 	mlw221|\
 	mlwg2|\
 	mofi3500-3gn|\
 	mpr-a1|\
 	mpr-a2|\
 	mr-102n|\
+	mt7628|\
+	mzk-750dhp|\
 	mzk-dp150n|\
+	mzk-ex300np|\
 	mzk-w300nh2|\
+	mzk-wdpr|\
 	nbg-419n|\
 	nw718|\
 	oy-0001|\
 	pbr-m1|\
+	psg1208|\
 	psr-680w|\
 	px-4885|\
 	re6500|\
@@ -97,6 +114,7 @@ platform_check_image() {
 	sl-r7205|\
 	tew-691gr|\
 	tew-692gr|\
+	tiny-ac|\
 	ur-326n4g|\
 	ur-336un|\
 	v22rw-2x2|\
@@ -104,10 +122,13 @@ platform_check_image() {
 	w150m|\
 	w306r-v20|\
 	w502u|\
+	wf-2881|\
 	whr-1166d|\
 	whr-300hp2|\
 	whr-600d|\
 	whr-g300n|\
+	witi|\
+	wizfi630a|\
 	wl-330n|\
 	wl-330n3g|\
 	wl-341v3|\
@@ -115,9 +136,13 @@ platform_check_image() {
 	wli-tx4-ag300n|\
 	wmr-300|\
 	wnce2001|\
+	wndr3700v5|\
 	wr512-3gn|\
 	wr6202|\
+	wrh-300cr|\
 	wrtnode|\
+	wrtnode2r |\
+	wrtnode2p |\
 	wsr-600|\
 	wt1520|\
 	wt3020|\
@@ -127,8 +152,12 @@ platform_check_image() {
 	y1|\
 	y1s|\
 	zbt-wa05|\
+	zbt-we826|\
+	zbt-wg2626|\
+	zbt-wg3526|\
 	zbt-wr8305rt|\
-	zte-q7)
+	zte-q7|\
+	youku-yk1)
 		[ "$magic" != "27051956" ] && {
 			echo "Invalid image type."
 			return 1
@@ -173,10 +202,34 @@ platform_check_image() {
 		}
 		return 0
 		;;
+	ubnt-erx)
+		nand_do_platform_check "$board" "$1"
+		return $?;
+		;;
 	esac
 
 	echo "Sysupgrade is not yet supported on $board."
 	return 1
+}
+
+platform_nand_pre_upgrade() {
+	local board=$(ramips_board_name)
+
+	case "$board" in
+	ubnt-erx)
+		platform_upgrade_ubnt_erx "$ARGV"
+		;;
+	esac
+}
+
+platform_pre_upgrade() {
+	local board=$(ramips_board_name)
+
+	case "$board" in
+    	ubnt-erx)
+		nand_do_upgrade "$ARGV"
+		;;
+	esac
 }
 
 platform_do_upgrade() {
@@ -197,4 +250,9 @@ disable_watchdog() {
 	}
 }
 
+blink_led() {
+	. /etc/diag.sh; set_state upgrade
+}
+
 append sysupgrade_pre_upgrade disable_watchdog
+append sysupgrade_pre_upgrade blink_led

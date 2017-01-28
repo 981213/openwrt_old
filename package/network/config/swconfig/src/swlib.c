@@ -51,6 +51,15 @@ static struct nla_policy portmap_policy[SWITCH_PORTMAP_MAX] = {
 	[SWITCH_PORTMAP_VIRT] = { .type = NLA_U32 },
 };
 
+static struct nla_policy link_policy[SWITCH_LINK_ATTR_MAX] = {
+	[SWITCH_LINK_FLAG_LINK] = { .type = NLA_FLAG },
+	[SWITCH_LINK_FLAG_DUPLEX] = { .type = NLA_FLAG },
+	[SWITCH_LINK_FLAG_ANEG] = { .type = NLA_FLAG },
+	[SWITCH_LINK_SPEED] = { .type = NLA_U32 },
+	[SWITCH_LINK_FLAG_EEE_100BASET] = { .type = NLA_FLAG },
+	[SWITCH_LINK_FLAG_EEE_1000BASET] = { .type = NLA_FLAG },
+};
+
 static inline void *
 swlib_alloc(size_t size)
 {
@@ -202,6 +211,37 @@ out:
 }
 
 static int
+store_link_val(struct nl_msg *msg, struct nlattr *nla, struct switch_val *val)
+{
+	struct nlattr *tb[SWITCH_LINK_ATTR_MAX + 1];
+	struct switch_port_link *link;
+	int err = 0;
+
+	if (!val->value.link)
+		val->value.link = malloc(sizeof(struct switch_port_link));
+
+	err = nla_parse_nested(tb, SWITCH_LINK_ATTR_MAX, nla, link_policy);
+	if (err < 0)
+		goto out;
+
+	link = val->value.link;
+	link->link = !!tb[SWITCH_LINK_FLAG_LINK];
+	link->duplex = !!tb[SWITCH_LINK_FLAG_DUPLEX];
+	link->aneg = !!tb[SWITCH_LINK_FLAG_ANEG];
+	link->tx_flow = !!tb[SWITCH_LINK_FLAG_TX_FLOW];
+	link->rx_flow = !!tb[SWITCH_LINK_FLAG_RX_FLOW];
+	link->speed = nla_get_u32(tb[SWITCH_LINK_SPEED]);
+	link->eee = 0;
+	if (tb[SWITCH_LINK_FLAG_EEE_100BASET])
+		link->eee |= SWLIB_LINK_FLAG_EEE_100BASET;
+	if (tb[SWITCH_LINK_FLAG_EEE_1000BASET])
+		link->eee |= SWLIB_LINK_FLAG_EEE_1000BASET;
+
+out:
+	return err;
+}
+
+static int
 store_val(struct nl_msg *msg, void *arg)
 {
 	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
@@ -221,6 +261,8 @@ store_val(struct nl_msg *msg, void *arg)
 		val->value.s = strdup(nla_get_string(tb[SWITCH_ATTR_OP_VALUE_STR]));
 	else if (tb[SWITCH_ATTR_OP_VALUE_PORTS])
 		val->err = store_port_val(msg, tb[SWITCH_ATTR_OP_VALUE_PORTS], val);
+	else if (tb[SWITCH_ATTR_OP_VALUE_LINK])
+		val->err = store_link_val(msg, tb[SWITCH_ATTR_OP_VALUE_LINK], val);
 
 	val->err = 0;
 	return 0;
@@ -295,6 +337,30 @@ nla_put_failure:
 }
 
 static int
+send_attr_link(struct nl_msg *msg, struct switch_val *val)
+{
+	struct switch_port_link *link = val->value.link;
+	struct nlattr *n;
+
+	n = nla_nest_start(msg, SWITCH_ATTR_OP_VALUE_LINK);
+	if (!n)
+		goto nla_put_failure;
+
+	if (link->duplex)
+		NLA_PUT_FLAG(msg, SWITCH_LINK_FLAG_DUPLEX);
+	if (link->aneg)
+		NLA_PUT_FLAG(msg, SWITCH_LINK_FLAG_ANEG);
+	NLA_PUT_U32(msg, SWITCH_LINK_SPEED, link->speed);
+
+	nla_nest_end(msg, n);
+
+	return 0;
+
+nla_put_failure:
+	return -1;
+}
+
+static int
 send_attr_val(struct nl_msg *msg, void *arg)
 {
 	struct switch_val *val = arg;
@@ -316,6 +382,10 @@ send_attr_val(struct nl_msg *msg, void *arg)
 		break;
 	case SWITCH_TYPE_PORTS:
 		if (send_attr_ports(msg, val) < 0)
+			goto nla_put_failure;
+		break;
+	case SWITCH_TYPE_LINK:
+		if (send_attr_link(msg, val))
 			goto nla_put_failure;
 		break;
 	default:
@@ -350,11 +420,20 @@ swlib_set_attr(struct switch_dev *dev, struct switch_attr *attr, struct switch_v
 	return swlib_call(cmd, NULL, send_attr_val, val);
 }
 
+enum {
+	CMD_NONE,
+	CMD_DUPLEX,
+	CMD_ANEG,
+	CMD_SPEED,
+};
+
 int swlib_set_attr_string(struct switch_dev *dev, struct switch_attr *a, int port_vlan, const char *str)
 {
 	struct switch_port *ports;
+	struct switch_port_link *link;
 	struct switch_val val;
 	char *ptr;
+	int cmd = CMD_NONE;
 
 	memset(&val, 0, sizeof(val));
 	val.port_vlan = port_vlan;
@@ -399,6 +478,48 @@ int swlib_set_attr_string(struct switch_dev *dev, struct switch_attr *a, int por
 			val.len++;
 		}
 		val.value.ports = ports;
+		break;
+	case SWITCH_TYPE_LINK:
+		link = malloc(sizeof(struct switch_port_link));
+		memset(link, 0, sizeof(struct switch_port_link));
+		ptr = (char *)str;
+		for (ptr = strtok(ptr," "); ptr; ptr = strtok(NULL, " ")) {
+			switch (cmd) {
+			case CMD_NONE:
+				if (!strcmp(ptr, "duplex"))
+					cmd = CMD_DUPLEX;
+				else if (!strcmp(ptr, "autoneg"))
+					cmd = CMD_ANEG;
+				else if (!strcmp(ptr, "speed"))
+					cmd = CMD_SPEED;
+				else
+					fprintf(stderr, "Unsupported option %s\n", ptr);
+				break;
+			case CMD_DUPLEX:
+				if (!strcmp(ptr, "half"))
+					link->duplex = 0;
+				else if (!strcmp(ptr, "full"))
+					link->duplex = 1;
+				else
+					fprintf(stderr, "Unsupported value %s\n", ptr);
+				cmd = CMD_NONE;
+				break;
+			case CMD_ANEG:
+				if (!strcmp(ptr, "on"))
+					link->aneg = 1;
+				else if (!strcmp(ptr, "off"))
+					link->aneg = 0;
+				else
+					fprintf(stderr, "Unsupported value %s\n", ptr);
+				cmd = CMD_NONE;
+				break;
+			case CMD_SPEED:
+				link->speed = atoi(ptr);
+				cmd = CMD_NONE;
+				break;
+			}
+		}
+		val.value.link = link;
 		break;
 	case SWITCH_TYPE_NOVAL:
 		if (str && !strcmp(str, "0"))

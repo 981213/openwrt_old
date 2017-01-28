@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=mt76
-PKG_VERSION:=2015-08-28
+PKG_VERSION:=2016-03-04
 PKG_RELEASE=1
 
 PKG_LICENSE:=GPLv2
@@ -10,7 +10,7 @@ PKG_LICENSE_FILES:=
 PKG_SOURCE_URL:=https://github.com/openwrt/mt76
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
-PKG_SOURCE_VERSION:=b6de6a08e46e1a1087a1fcd41a2ee0590de7c4a0
+PKG_SOURCE_VERSION:=7059cc27df894a4b845b6deb7c51425ffb4b7c5c
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.xz
 
 PKG_MAINTAINER:=Felix Fietkau <nbd@openwrt.org>
@@ -21,10 +21,13 @@ include $(INCLUDE_DIR)/package.mk
 
 define KernelPackage/mt76
   SUBMENU:=Wireless Drivers
-  TITLE:=MediaTek MT76x2 wireless driver
+  TITLE:=MediaTek MT76x2/MT7603 wireless driver
   DEPENDS:=+kmod-mac80211 +@DRIVER_11N_SUPPORT @PCI_SUPPORT
-  FILES:=$(PKG_BUILD_DIR)/mt76pci.ko
-  AUTOLOAD:=$(call AutoLoad,50,mac80211 mt76pci)
+  FILES:=\
+	$(PKG_BUILD_DIR)/mt76.ko \
+	$(PKG_BUILD_DIR)/mt76x2e.ko \
+	$(PKG_BUILD_DIR)/mt7603e.ko
+  AUTOLOAD:=$(call AutoLoad,50,mac80211 mt76 mt76x2e mt7603e)
 endef
 
 NOSTDINC_FLAGS = \
@@ -52,6 +55,12 @@ endef
 define KernelPackage/mt76/install
 	$(INSTALL_DIR) $(1)/lib/firmware
 	cp \
+		$(if $(CONFIG_TARGET_ramips_mt7628) || $(CONFIG_TARGET_ramips_mt7688), \
+			$(PKG_BUILD_DIR)/firmware/mt7628_e1.bin \
+			$(PKG_BUILD_DIR)/firmware/mt7628_e2.bin \
+		) \
+		$(PKG_BUILD_DIR)/firmware/mt7603_e1.bin \
+		$(PKG_BUILD_DIR)/firmware/mt7603_e2.bin \
 		$(PKG_BUILD_DIR)/firmware/mt7662_rom_patch.bin \
 		$(PKG_BUILD_DIR)/firmware/mt7662.bin \
 		$(1)/lib/firmware

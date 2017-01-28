@@ -25,7 +25,7 @@
 			m25p80@0 {
 				#address-cells = <1>;
 				#size-cells = <1>;
-				compatible = "w25q128";
+				compatible = "jedec,spi-nor";
 				reg = <0 0>;
 				linux,modalias = "m25p80", "w25q128";
 				spi-max-frequency = <10000000>;
@@ -45,7 +45,7 @@
 				factory: partition@30000 {
 					label = "factory";
 					reg = <0x30000 0x10000>;
-
+					read-only;
 				};
 
 				partition@40000 {
@@ -72,7 +72,7 @@
 		pinctrl-names = "default";
 		pinctrl-0 = <&ephy_pins>;
 		mtd-mac-address = <&factory 0x4>;
-		ralink,port-map = "llllw";
+		mediatek,portmap = "llllw";
 	};
 
 	wmac@10180000 {

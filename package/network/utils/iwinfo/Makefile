@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2010-2015 Jo-Philipp Wich <jow@openwrt.org>
+# Copyright (C) 2010-2016 Jo-Philipp Wich <jow@openwrt.org>
 #
 # This is free software, licensed under the GPL 2 license.
 #
@@ -7,13 +7,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libiwinfo
-PKG_VERSION:=2015-08-17
+PKG_VERSION:=2016-01-25
 PKG_RELEASE=$(PKG_SOURCE_VERSION)
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL:=http://git.openwrt.org/project/iwinfo.git
+PKG_SOURCE_URL=$(OPENWRT_GIT)/project/iwinfo.git
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
-PKG_SOURCE_VERSION:=16597a70bc946937130db9f0832e3d0c448c8233
+PKG_SOURCE_VERSION:=e4aca3910dff532ed878d0ceaf1ab6e8ad7719bf
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.gz
 PKG_MAINTAINER:=Jo-Philipp Wich <jow@openwrt.org>
 PKG_LICENSE:=GPL-2.0
@@ -27,7 +27,11 @@ PKG_CONFIG_DEPENDS := \
 	CONFIG_PACKAGE_kmod-mt7620 \
 	CONFIG_PACKAGE_kmod-rt2860v2_ap \
 	CONFIG_PACKAGE_kmod-mt76x2e-epa \
+	CONFIG_PACKAGE_kmod-qca-wifi-10.4-perf \
+	CONFIG_PACKAGE_kmod-qca-wifi-10.4-akronite-perf \
 	CONFIG_PACKAGE_kmod-cfg80211
+
+PKG_BUILD_DEPENDS:=qca-wifi-10.4
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -84,6 +88,8 @@ IWINFO_BACKENDS := \
 	$(if $(CONFIG_PACKAGE_kmod-mt7620),rt2860v2) \
 	$(if $(CONFIG_PACKAGE_kmod-rt2860v2_ap),rt2860v2) \
 	$(if $(CONFIG_PACKAGE_kmod-mt76x2e-epa),rt2860v2) \
+	$(if $(CONFIG_PACKAGE_kmod-qca-wifi-10.4-perf),qcawifi) \
+	$(if $(CONFIG_PACKAGE_kmod-qca-wifi-10.4-akronite-perf),qcawifi) \
 	$(if $(CONFIG_PACKAGE_kmod-cfg80211),nl80211)
 
 TARGET_CFLAGS += \

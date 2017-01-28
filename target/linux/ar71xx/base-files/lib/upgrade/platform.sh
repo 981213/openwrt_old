@@ -66,6 +66,10 @@ tplink_get_image_hwid() {
 	get_image "$@" | dd bs=4 count=1 skip=16 2>/dev/null | hexdump -v -n 4 -e '1/1 "%02x"'
 }
 
+tplink_get_image_mid() {
+	get_image "$@" | dd bs=4 count=1 skip=17 2>/dev/null | hexdump -v -n 4 -e '1/1 "%02x"'
+}
+
 tplink_get_image_boot_size() {
 	get_image "$@" | dd bs=4 count=1 skip=37 2>/dev/null | hexdump -v -n 4 -e '1/1 "%02x"'
 }
@@ -167,12 +171,16 @@ platform_check_image() {
 	case "$board" in
 	all0315n | \
 	all0258n | \
-	cap4200ag)
+	cap324 | \
+	cap4200ag | \
+	cr3000 |\
+	cr5000)
 		platform_check_image_allnet "$1" && return 0
 		return 1
 		;;
 	alfa-ap96 | \
 	alfa-nx | \
+	arduino-yun | \
 	ap113 | \
 	ap121 | \
 	ap121-mini | \
@@ -180,9 +188,11 @@ platform_check_image() {
 	ap136-020 | \
 	ap135-020 | \
 	ap147-010 | \
+	ap152 | \
 	ap96 | \
 	bxu2000n-2-a1 | \
 	db120 | \
+	dr344 | \
 	f9k1115v2 |\
 	hornet-ub | \
 	mr12 | \
@@ -199,6 +209,8 @@ platform_check_image() {
 	ap81 | \
 	ap83 | \
 	ap132 | \
+	c-55 | \
+	cf-e316n-v2 | \
 	dgl-5500-a1 |\
 	dhp-1565-a1 |\
 	dir-505-a1 | \
@@ -209,6 +221,7 @@ platform_check_image() {
 	dir-615-i1 | \
 	dir-825-c1 | \
 	dir-835-a1 | \
+	dlan-hotspot | \
 	dlan-pro-500-wp | \
 	dlan-pro-1200-ac | \
 	dragino2 | \
@@ -217,6 +230,9 @@ platform_check_image() {
 	esr900 | \
 	ew-dorin | \
 	ew-dorin-router | \
+	gl-ar150 | \
+	gl-ar300 | \
+	gl-domino | \
 	hiwifi-hc6361 | \
 	hornet-ub-x2 | \
 	mzk-w04nu | \
@@ -224,8 +240,10 @@ platform_check_image() {
 	tew-632brp | \
 	tew-712br | \
 	tew-732br | \
+	tew-823dru | \
 	wrt400n | \
 	airgateway | \
+	airgatewaypro | \
 	airrouter | \
 	bullet-m | \
 	loco-m-xw | \
@@ -237,6 +255,7 @@ platform_check_image() {
 	rw2458n | \
 	wpj531 | \
 	wndap360 | \
+	wpj342 | \
 	wpj344 | \
 	wzr-hp-g300nh2 | \
 	wzr-hp-g300nh | \
@@ -249,8 +268,10 @@ platform_check_image() {
 	wlae-ag300n | \
 	nbg460n_550n_550nh | \
 	unifi | \
+	unifiac | \
 	unifi-outdoor | \
-	carambola2 )
+	carambola2 | \
+	weio )
 		[ "$magic" != "2705" ] && {
 			echo "Invalid image type."
 			return 1
@@ -291,6 +312,7 @@ platform_check_image() {
 
 		return 0;
 		;;
+	mr1750 | \
 	mr600 | \
 	mr600v2 | \
 	mr900 | \
@@ -301,22 +323,29 @@ platform_check_image() {
 	om2p-hsv2 | \
 	om2p-lc | \
 	om5p | \
-	om5p-an)
+	om5p-an | \
+	om5p-ac | \
+	om5p-acv2)
 		platform_check_image_openmesh "$magic_long" "$1" && return 0
 		return 1
 		;;
 
 	antminer-s1 | \
 	antminer-s3 | \
+	antrouter-r1 | \
 	archer-c5 | \
 	archer-c7 | \
 	el-m150 | \
 	el-mini | \
 	gl-inet | \
 	mc-mac1200r | \
+	minibox-v1 |\
+	omy-g1 |\
+	omy-x1 |\
 	onion-omega | \
 	oolite | \
 	smart-300 | \
+	tellstick-znet-lite | \
 	tl-mr10u | \
 	tl-mr11u | \
 	tl-mr12u | \
@@ -338,9 +367,10 @@ platform_check_image() {
 	tl-wa901nd | \
 	tl-wa901nd-v2 | \
 	tl-wa901nd-v3 | \
-    tl-wdr3320-v2 | \
+	tl-wa901nd-v4 | \
+	tl-wdr3320-v2 | \
 	tl-wdr3500 | \
-    mw4530r | \
+	mw4530r | \
 	tl-wdr4300 | \
 	tl-wdr4900-v2 | \
 	tl-wdr6300 | \
@@ -360,6 +390,7 @@ platform_check_image() {
 	tl-wr941nd | \
 	tl-wr941nd-v7 | \
 	tl-wr941nd-v5 | \
+	tl-wr941nd-v6 | \
 	tl-wr1041n-v2 | \
 	tl-wr1043nd | \
 	tl-wr1043nd-v2 | \
@@ -378,13 +409,17 @@ platform_check_image() {
 		}
 
 		local hwid
-		local imageid
+		local mid
+		local imagehwid
+		local imagemid
 
 		hwid=$(tplink_get_hwid)
-		imageid=$(tplink_get_image_hwid "$1")
+		mid=$(tplink_get_mid)
+		imagehwid=$(tplink_get_image_hwid "$1")
+		imagemid=$(tplink_get_image_mid "$1")
 
-		[ "$hwid" != "$imageid" ] && {
-			echo "Invalid image, hardware ID mismatch, hw:$hwid image:$imageid."
+		[ "$hwid" != "$imagehwid" -o "$mid" != "$imagemid" ] && {
+			echo "Invalid image, hardware ID mismatch, hw:$hwid $mid image:$imagehwid $imagemid."
 			return 1
 		}
 
@@ -404,6 +439,7 @@ platform_check_image() {
 		return 1
 		;;
 
+	nbg6616 | \
 	unifi-outdoor-plus | \
 	uap-pro)
 		[ "$magic_long" != "19852003" ] && {
@@ -415,7 +451,8 @@ platform_check_image() {
 	wndr3700 | \
 	wnr2000-v3 | \
 	wnr612-v2 | \
-	wnr1000-v2)
+	wnr1000-v2 | \
+	wpn824n)
 		local hw_magic
 
 		hw_magic="$(ar71xx_get_mtd_part_magic firmware)"
@@ -424,6 +461,10 @@ platform_check_image() {
 			return 1
 		}
 		return 0
+		;;
+	mr18)
+		merakinand_do_platform_check $board $1
+		return $?;
 		;;
 	nbg6716 | \
 	r6100 | \
@@ -461,13 +502,20 @@ platform_check_image() {
 		fi
 		return 0
 		;;
-    wnr2000-v4)
+	wnr2000-v4)
 		[ "$magic_long" != "32303034" ] && {
 			echo "Invalid image type."
 			return 1
 		}
 		return 0
 		;;
+	wnr2200)
+                [ "$magic_long" != "32323030" ] && {
+                        echo "Invalid image type."
+                        return 1
+                }
+                return 0
+                ;;
 
 	esac
 
@@ -484,6 +532,9 @@ platform_pre_upgrade() {
 	wndr3700v4 | \
 	wndr4300 )
 		nand_do_upgrade "$1"
+		;;
+	mr18)
+		merakinand_do_upgrade "$1"
 		;;
 	esac
 }
@@ -522,6 +573,7 @@ platform_do_upgrade() {
 	tew-673gru)
 		platform_do_upgrade_dir825b "$ARGV"
 		;;
+	mr1750 | \
 	mr600 | \
 	mr600v2 | \
 	mr900 | \
@@ -532,7 +584,9 @@ platform_do_upgrade() {
 	om2p-hsv2 | \
 	om2p-lc | \
 	om5p | \
-	om5p-an)
+	om5p-an | \
+	om5p-ac | \
+	om5p-acv2)
 		platform_do_upgrade_openmesh "$ARGV"
 		;;
 	unifi-outdoor-plus | \

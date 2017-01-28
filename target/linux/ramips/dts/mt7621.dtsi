@@ -1,3 +1,5 @@
+#include <dt-bindings/interrupt-controller/mips-gic.h>
+
 / {
 	#address-cells = <1>;
 	#size-cells = <1>;
@@ -18,6 +20,22 @@
 		#interrupt-cells = <1>;
 		interrupt-controller;
 		compatible = "mti,cpu-interrupt-controller";
+	};
+
+	cpuclock: cpuclock@0 {
+		#clock-cells = <0>;
+		compatible = "fixed-clock";
+
+		/* FIXME: there should be way to detect this */
+		clock-frequency = <880000000>;
+	};
+
+	sysclock: sysclock@0 {
+		#clock-cells = <0>;
+		compatible = "fixed-clock";
+
+		/* FIXME: there should be way to detect this */
+		clock-frequency = <50000000>;
 	};
 
 	palmbus@1E000000 {
@@ -72,12 +90,24 @@
 			reg = <0x300 0x100>;
 		};
 
+		cpc@1fbf0000 {
+			     compatible = "mtk,mt7621-cpc";
+			     reg = <0x1fbf0000 0x8000>;
+		};
+
+		mc@1fbf8000 {
+			    compatible = "mtk,mt7621-mc";
+			    reg = <0x1fbf8000 0x8000>;
+ 		};
+
 		uartlite@c00 {
 			compatible = "ns16550a";
 			reg = <0xc00 0x100>;
 
+			clocks = <&sysclock>;
+
 			interrupt-parent = <&gic>;
-			interrupts = <26>;
+			interrupts = <GIC_SHARED 26 IRQ_TYPE_LEVEL_HIGH>;
 
 			reg-shift = <2>;
 			reg-io-width = <4>;
@@ -90,11 +120,13 @@
 			compatible = "ralink,mt7621-spi";
 			reg = <0xb00 0x100>;
 
+			clocks = <&sysclock>;
+
 			resets = <&rstctrl 18>;
 			reset-names = "spi";
 
 			#address-cells = <1>;
-			#size-cells = <1>;
+			#size-cells = <0>;
 
 			pinctrl-names = "default";
 			pinctrl-0 = <&spi_pins>;
@@ -134,35 +166,35 @@
 		uart1_pins: uart1 {
 			uart1 {
 				ralink,group = "uart1";
-				ralink,function = "uart";
+				ralink,function = "uart1";
 			};
 		};
 
 		uart2_pins: uart2 {
 			uart2 {
 				ralink,group = "uart2";
-				ralink,function = "uart";
+				ralink,function = "uart2";
 			};
 		};
 
 		uart3_pins: uart3 {
 			uart3 {
 				ralink,group = "uart3";
-				ralink,function = "uart";
+				ralink,function = "uart3";
 			};
 		};
 
 		rgmii1_pins: rgmii1 {
 			rgmii1 {
 				ralink,group = "rgmii1";
-				ralink,function = "rgmii";
+				ralink,function = "rgmii1";
 			};
 		};
 
 		rgmii2_pins: rgmii2 {
 			rgmii2 {
 				ralink,group = "rgmii2";
-				ralink,function = "rgmii";
+				ralink,function = "rgmii2";
 			};
 		};
 
@@ -183,12 +215,12 @@
 		nand_pins: nand {
 			spi-nand {
 				ralink,group = "spi";
-				ralink,function = "nand";
+				ralink,function = "nand1";
 			};
 
 			sdhci-nand {
 				ralink,group = "sdhci";
-				ralink,function = "nand";
+				ralink,function = "nand2";
 			};
 		};
 
@@ -210,61 +242,52 @@
 		reg = <0x1E130000 4000>;
 
 		interrupt-parent = <&gic>;
-		interrupts = <20>;
+		interrupts = <GIC_SHARED 20 IRQ_TYPE_LEVEL_HIGH>;
 	};
 
 	xhci@1E1C0000 {
-		status = "disabled";
+		status = "okay";
 
-		compatible = "xhci-platform";
-		reg = <0x1E1C0000 4000>;
+		compatible = "mediatek,mt8173-xhci";
+		reg = <0x1e1c0000 0x1000
+		       0x1e1d0700 0x0100>;
+
+		clocks = <&sysclock>;
+		clock-names = "sys_ck";
 
 		interrupt-parent = <&gic>;
-		interrupts = <22>;
+		interrupts = <GIC_SHARED 22 IRQ_TYPE_LEVEL_HIGH>;
 	};
 
-	gic: gic@1fbc0000 {
-		#address-cells = <0>;
-		#interrupt-cells = <1>;
+	gic: interrupt-controller@1fbc0000 {
+		compatible = "mti,gic";
+		reg = <0x1fbc0000 0x2000>;
+
 		interrupt-controller;
-		compatible = "ralink,mt7621-gic";
-		reg = < 0x1fbc0000 0x80 /* gic */
-			0x1fbf0000 0x8000 /* cpc */
-			0x1fbf8000 0x8000 /* gpmc */
-		>;
+		#interrupt-cells = <3>;
+
+		mti,reserved-cpu-vectors = <7>;
+
+		timer {
+			compatible = "mti,gic-timer";
+			interrupts = <GIC_LOCAL 1 IRQ_TYPE_NONE>;
+			clocks = <&cpuclock>;
+		};
 	};
 
 	nand@1e003000 {
+		status = "disabled";
+
 		compatible = "mtk,mt7621-nand";
 		bank-width = <2>;
 		reg = <0x1e003000 0x800
 			0x1e003800 0x800>;
 		#address-cells = <1>;
 		#size-cells = <1>;
-
-		partition@0 {
-			label = "uboot";
-			reg = <0x00000 0x80000>; /* 64 KB */
-		};
-
-		partition@80000 {
-			label = "uboot_env";
-			reg = <0x80000 0x80000>; /* 64 KB */
-		};
-
-		partition@100000 {
-			label = "factory";
-			reg = <0x100000 0x40000>;
-		};
-
-		partition@140000 {
-			label = "rootfs";
-			reg = <0x140000 0xec0000>;
-		};
 	};
 
 	ethernet@1e100000 {
-		compatible = "ralink,mt7621-eth";
+		compatible = "mediatek,mt7621-eth";
 		reg = <0x1e100000 10000>;
 
 		#address-cells = <1>;
@@ -274,7 +297,9 @@
 		reset-names = "fe", "eth";
 
 		interrupt-parent = <&gic>;
-		interrupts = <3>;
+		interrupts = <GIC_SHARED 3 IRQ_TYPE_LEVEL_HIGH>;
+
+		mediatek,switch = <&gsw>;
 
 		mdio-bus {
 			#address-cells = <1>;
@@ -287,11 +312,11 @@
 		};
 	};
 
-	gsw@1e110000 {
-		compatible = "ralink,mt7620a-gsw";
+	gsw: gsw@1e110000 {
+		compatible = "mediatek,mt7621-gsw";
 		reg = <0x1e110000 8000>;
 		interrupt-parent = <&gic>;
-		interrupts = <23>;
+		interrupts = <GIC_SHARED 23 IRQ_TYPE_LEVEL_HIGH>;
 	};
 
 	pcie@1e140000 {
@@ -312,6 +337,11 @@
 			0x02000000 0 0x00000000 0x60000000 0 0x10000000 /* pci memory */
 			0x01000000 0 0x00000000 0x1e160000 0 0x00010000 /* io space */
 		>;
+
+		interrupt-parent = <&gic>;
+		interrupts = <GIC_SHARED 4 IRQ_TYPE_LEVEL_HIGH
+				GIC_SHARED 24 IRQ_TYPE_LEVEL_HIGH
+				GIC_SHARED 25 IRQ_TYPE_LEVEL_HIGH>;
 
 		status = "okay";
 

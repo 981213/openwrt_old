@@ -8,13 +8,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=binutils
-PKG_VERSION:=2.24
-PKG_RELEASE:=3
+PKG_VERSION:=2.25
+PKG_RELEASE:=1
 
 PKG_SOURCE_URL:=@GNU/binutils
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_VERSION:=$(PKG_VERSION)
-PKG_MD5SUM:=e0f71a7b2ddab0f8612336ac81d9636b
+PKG_MD5SUM:=d9f3303f802a5b6b0bb73a335ab89d66
 
 PKG_FIXUP:=autoreconf
 PKG_LIBTOOL_PATHS:=. gas bfd opcodes gprof binutils ld libiberty gold intl
@@ -26,13 +26,14 @@ PKG_LICENSE:=GPL-3.0+
 PKG_BUILD_PARALLEL:=1
 PKG_USE_MIPS16:=0
 
+include $(INCLUDE_DIR)/nls.mk
 include $(INCLUDE_DIR)/package.mk
 
 define Package/libbfd
   SECTION:=libs
   CATEGORY:=Libraries
   TITLE:=libbfd
-  DEPENDS:=+zlib
+  DEPENDS:=+zlib $(ICONV_DEPENDS) $(INTL_DEPENDS)
 endef
 
 define Package/libopcodes

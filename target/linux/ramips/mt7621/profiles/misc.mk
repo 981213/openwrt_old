@@ -9,9 +9,9 @@ define Profile/PBR-M1
 	NAME:=PBR-M1 Device
 	FEATURES+=rtc
 	PACKAGES:=\
-		kmod-usb-core kmod-usb3 kmod-usb-hid kmod-sdhci-mt7620 \
+		kmod-usb-core kmod-usb3 kmod-usb-hid \
 		kmod-ledtrig-usbdev kmod-ata-core kmod-ata-ahci \
-		kmod-usb3-mt7621 kmod-rtc-pcf8563
+		kmod-rtc-pcf8563
 endef
 
 define Profile/PBR-M1/Description

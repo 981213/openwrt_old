@@ -13,7 +13,7 @@
 			m25p80@0 {
 				#address-cells = <1>;
 				#size-cells = <1>;
-				compatible = "s25fl064k";
+				compatible = "jedec,spi-nor";
 				reg = <0 0>;
 				linux,modalias = "m25p80", "s25fl064k";
 				spi-max-frequency = <10000000>;
@@ -57,11 +57,11 @@
 		status = "okay";
 		pinctrl-names = "default";
 		pinctrl-0 = <&rgmii1_pins &rgmii2_pins &mdio_pins>;
-		ralink,port-map = "llllw";
+		mediatek,portmap = "llllw";
 
 		port@5 {
 			status = "okay";
-			ralink,fixed-link = <1000 1 1 1>;
+			mediatek,fixed-link = <1000 1 1 1>;
 			phy-mode = "rgmii";
 		};
 
@@ -101,7 +101,7 @@
 	};
 
 	gsw@10110000 {
-		ralink,port4 = "gmac";
+		mediatek,port4 = "gmac";
 		mediatek,mt7530 = <1>;
 	};
 

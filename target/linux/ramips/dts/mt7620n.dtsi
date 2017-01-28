@@ -20,6 +20,11 @@
 		compatible = "mti,cpu-interrupt-controller";
 	};
 
+	aliases {
+		spi0 = &spi0;
+		spi1 = &spi1;
+	};
+
 	palmbus@10000000 {
 		compatible = "palmbus";
 		reg = <0x10000000 0x200000>;
@@ -154,9 +159,25 @@
 			status = "disabled";
 		};
 
-		spi@b00 {
+		spi0: spi@b00 {
 			compatible = "ralink,mt7620a-spi", "ralink,rt2880-spi";
-			reg = <0xb00 0x100>;
+			reg = <0xb00 0x40>;
+
+			resets = <&rstctrl 18>;
+			reset-names = "spi";
+
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			status = "disabled";
+
+			pinctrl-names = "default";
+			pinctrl-0 = <&spi_pins>;
+		};
+
+		spi1: spi@b40 {
+			compatible = "ralink,rt2880-spi";
+			reg = <0xb40 0x60>;
 
 			resets = <&rstctrl 18>;
 			reset-names = "spi";
@@ -167,7 +188,7 @@
 			status = "disabled";
 
 			pinctrl-names = "default";
-			pinctrl-0 = <&spi_pins>;
+			pinctrl-0 = <&spi_cs1>;
 		};
 
 		uartlite@c00 {
@@ -213,6 +234,13 @@
 			};
 		};
 
+		spi_cs1: spi1 {
+			spi1 {
+				ralink,group = "spi_cs1";
+				ralink,function = "spi_cs1";
+			};
+		};
+
 		uartlite_pins: uartlite {
 			uart {
 				ralink,group = "uartlite";
@@ -227,7 +255,7 @@
 	};
 
 	usbphy: usbphy {
-		compatible = "ralink,mt7620a-usbphy";
+		compatible = "mediatek,mt7620-usbphy";
 		#phy-cells = <1>;
 
 		resets = <&rstctrl 22 &rstctrl 25>;
@@ -235,7 +263,7 @@
 	};
 
 	ethernet@10100000 {
-		compatible = "ralink,mt7620a-eth";
+		compatible = "mediatek,mt7620-eth";
 		reg = <0x10100000 10000>;
 
 		#address-cells = <1>;
@@ -247,6 +275,8 @@
 		resets = <&rstctrl 21 &rstctrl 23>;
 		reset-names = "fe", "esw";
 
+		mediatek,switch = <&gsw>;
+
 		mdio-bus {
 			#address-cells = <1>;
 			#size-cells = <0>;
@@ -255,8 +285,8 @@
 		};
 	};
 
-	gsw@10110000 {
-		compatible = "ralink,mt7620a-gsw";
+	gsw: gsw@10110000 {
+		compatible = "mediatek,mt7620-gsw";
 		reg = <0x10110000 8000>;
 
 		resets = <&rstctrl 23>;
@@ -264,11 +294,11 @@
 
 		interrupt-parent = <&intc>;
 		interrupts = <17>;
-		ralink,port4 = "gmac";
+		mediatek,port4 = "gmac";
 	};
 
 	ehci@101c0000 {
-		compatible = "ralink,rt3xxx-ehci";
+		compatible = "generic-ehci";
 		reg = <0x101c0000 0x1000>;
 
 		interrupt-parent = <&intc>;
@@ -281,7 +311,7 @@
 	};
 
 	ohci@101c1000 {
-		compatible = "ralink,rt3xxx-ohci";
+		compatible = "generic-ohci";
 		reg = <0x101c1000 0x1000>;
 
 		phys = <&usbphy 1>;

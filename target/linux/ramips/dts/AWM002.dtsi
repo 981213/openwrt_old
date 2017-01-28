@@ -12,6 +12,7 @@
 				#address-cells = <1>;
 				#size-cells = <1>;
 				reg = <0 0>;
+				compatible = "jedec,spi-nor";
 				spi-max-frequency = <10000000>;
 
 				partition@0 {
@@ -50,7 +51,7 @@
 	};
 
 	esw@10110000 {
-		ralink,portmap = <0x3f>;
+		mediatek,portmap = <0x3f>;
 	};
 
 	ehci@101c0000 {

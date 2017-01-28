@@ -23,6 +23,7 @@
 #include <linux/ath9k_platform.h>
 
 #include <asm/mach-ath79/ar71xx_regs.h>
+#include <linux/platform_data/phy-at803x.h>
 
 #include "common.h"
 #include "dev-ap9x-pci.h"
@@ -94,15 +95,52 @@ static struct gpio_keys_button mr900_gpio_keys[] __initdata = {
 	},
 };
 
+static struct at803x_platform_data mr900_at803x_data = {
+	.disable_smarteee = 1,
+	.enable_rgmii_rx_delay = 1,
+	.enable_rgmii_tx_delay = 0,
+	.fixup_rgmii_tx_delay = 1,
+};
+
+static struct mdio_board_info mr900_mdio0_info[] = {
+	{
+		.bus_id = "ag71xx-mdio.0",
+		.phy_addr = 5,
+		.platform_data = &mr900_at803x_data,
+	},
+};
+
+static void __init mr900_setup_qca955x_eth_cfg(u32 mask,
+					       unsigned int rxd,
+					       unsigned int rxdv,
+					       unsigned int txd,
+					       unsigned int txe)
+{
+	void __iomem *base;
+	u32 t;
+
+	base = ioremap(QCA955X_GMAC_BASE, QCA955X_GMAC_SIZE);
+
+	t = mask;
+	t |= rxd << QCA955X_ETH_CFG_RXD_DELAY_SHIFT;
+	t |= rxdv << QCA955X_ETH_CFG_RDV_DELAY_SHIFT;
+	t |= txd << QCA955X_ETH_CFG_TXD_DELAY_SHIFT;
+	t |= txe << QCA955X_ETH_CFG_TXE_DELAY_SHIFT;
+
+	__raw_writel(t, base + QCA955X_GMAC_REG_ETH_CFG);
+
+	iounmap(base);
+}
+
 static void __init mr900_setup(void)
 {
 	u8 *art = (u8 *)KSEG1ADDR(0x1fff0000);
 	u8 mac[6], pcie_mac[6];
 	struct ath9k_platform_data *pdata;
 
-	ath79_eth0_pll_data.pll_1000 = 0xbe000101;
-	ath79_eth0_pll_data.pll_100 = 0x80000101;
-	ath79_eth0_pll_data.pll_10 = 0x80001313;
+	ath79_eth0_pll_data.pll_1000 = 0xae000000;
+	ath79_eth0_pll_data.pll_100 = 0xa0000101;
+	ath79_eth0_pll_data.pll_10 = 0xa0001313;
 
 	ath79_register_m25p80(NULL);
 
@@ -123,8 +161,11 @@ static void __init mr900_setup(void)
 	}
 	pdata->use_eeprom = true;
 
-	ath79_setup_qca955x_eth_cfg(QCA955X_ETH_CFG_RGMII_EN);
+	mr900_setup_qca955x_eth_cfg(QCA955X_ETH_CFG_RGMII_EN, 3, 3, 0, 0);
 	ath79_register_mdio(0, 0x0);
+
+	mdiobus_register_board_info(mr900_mdio0_info,
+				    ARRAY_SIZE(mr900_mdio0_info));
 
 	ath79_init_mac(ath79_eth0_data.mac_addr, art + MR900_MAC0_OFFSET, 0);
 

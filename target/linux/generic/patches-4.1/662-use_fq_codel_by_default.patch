@@ -32,7 +32,7 @@
  {
 --- a/include/net/sch_generic.h
 +++ b/include/net/sch_generic.h
-@@ -340,6 +340,7 @@ extern struct Qdisc noop_qdisc;
+@@ -343,6 +343,7 @@ extern struct Qdisc noop_qdisc;
  extern struct Qdisc_ops noop_qdisc_ops;
  extern struct Qdisc_ops pfifo_fast_ops;
  extern struct Qdisc_ops mq_qdisc_ops;
@@ -42,7 +42,7 @@
  struct Qdisc_class_common {
 --- a/net/sched/sch_generic.c
 +++ b/net/sched/sch_generic.c
-@@ -737,7 +737,7 @@ static void attach_one_default_qdisc(str
+@@ -739,7 +739,7 @@ static void attach_one_default_qdisc(str
  
  	if (dev->tx_queue_len) {
  		qdisc = qdisc_create_dflt(dev_queue,

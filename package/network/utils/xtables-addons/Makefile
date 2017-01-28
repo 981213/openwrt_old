@@ -9,9 +9,9 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=xtables-addons
-PKG_VERSION:=2.7
+PKG_VERSION:=2.10
 PKG_RELEASE:=1
-PKG_MD5SUM:=81bd7ba82e5f7bfd1458fc97ddf72e1d
+PKG_MD5SUM:=727bf0dd4a3d9c65724267bd0d5d80b0
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@SF/xtables-addons
@@ -147,6 +147,6 @@ $(eval $(call BuildTemplate,lua,Lua PacketScript,xt_LUA,LUA/xt_LUA,+kmod-ipt-con
 $(eval $(call BuildTemplate,psd,psd,xt_psd,xt_psd,))
 $(eval $(call BuildTemplate,quota2,quota2,xt_quota2,xt_quota2,))
 $(eval $(call BuildTemplate,sysrq,SYSRQ,xt_SYSRQ,xt_SYSRQ,+kmod-ipt-compat-xtables))
-$(eval $(call BuildTemplate,tarpit,TARPIT,xt_TARPIT,xt_TARPIT,+kmod-ipt-compat-xtables +IPV6:kmod-ipv6))
+$(eval $(call BuildTemplate,tarpit,TARPIT,xt_TARPIT,xt_TARPIT,+kmod-ipt-compat-xtables))
 
 $(eval $(call BuildPackage,iptaccount))

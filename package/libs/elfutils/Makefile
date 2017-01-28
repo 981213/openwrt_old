@@ -7,12 +7,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=elfutils
-PKG_VERSION:=0.163
+PKG_VERSION:=0.165
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:=http://fedorahosted.org/releases/e/l/$(PKG_NAME)/$(PKG_VERSION)
-PKG_MD5SUM:=77ce87f259987d2e54e4d87b86cbee41
+PKG_MD5SUM:=c37fdbe18e848002b451562cba964679
 PKG_MAINTAINER:=Luiz Angelo Daros de Luca <luizluca@gmail.com>
 PKG_LICENSE:=GPL-3.0+
 PKG_LICENSE_FILES:=COPYING COPYING-GPLV2 COPYING-LGPLV3
@@ -28,7 +28,6 @@ include $(INCLUDE_DIR)/nls.mk
 define Package/elfutils/Default
   SECTION:=libs
   CATEGORY:=Libraries
-  DEPENDS:=$(INTL_DEPENDS)
   TITLE:=ELF manipulation libraries
   URL:=https://fedorahosted.org/elfutils/
 endef
@@ -41,12 +40,13 @@ endef
 
 define Package/libdw
   $(call Package/elfutils/Default)
-  DEPENDS:=libelf1 +zlib +libbz2
+  DEPENDS:=libelf1 +libbz2
   TITLE+= (libdw)
 endef
 
 define Package/libelf1
   $(call Package/elfutils/Default)
+  DEPENDS:=$(INTL_DEPENDS) +zlib
   TITLE+= (libelf)
 endef
 

@@ -56,7 +56,7 @@ $(eval $(call KernelPackage,i2c-mt7621))
 
 define KernelPackage/sound-mt7620
   TITLE:=MT7620 PCM/I2S Alsa Driver
-  DEPENDS:=@TARGET_ramips_mt7620 +kmod-sound-soc-core +kmod-regmap
+  DEPENDS:=@TARGET_ramips_mt7620 +kmod-sound-soc-core +kmod-regmap @BROKEN
   KCONFIG:= \
 	CONFIG_SND_MT7620_SOC_I2S \
 	CONFIG_SND_MT7620_SOC_WM8960

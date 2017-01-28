@@ -162,6 +162,9 @@ brcm63xx_dt_detect() {
 	"Huawei EchoLife HG556a (version C)")
 		board_name="hg556a_c"
 		;;
+	"Huawei HG622")
+		board_name="hg622"
+		;;
 	"Huawei HG655b")
 		board_name="hg655b"
 		;;
@@ -182,6 +185,9 @@ brcm63xx_dt_detect() {
 		;;
 	"Netgear DGND3700v1/DGND3800B")
 		board_name="dgnd3700v1_dgnd3800b"
+		;;
+	"NuCom R5010UN v2")
+		board_name="r5010un_v2"
 		;;
 	"Pirelli A226G")
 		board_name="a226g"

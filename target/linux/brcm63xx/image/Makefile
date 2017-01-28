@@ -168,6 +168,7 @@ endef
 # Shared device definition: applies to every defined device
 define Device/Default
   PROFILES = Default $$(DEVICE_PROFILE)
+  KERNEL_DEPENDS = $$(wildcard ../dts/$$(DEVICE_DTS).dts)
   KERNEL_INITRAMFS_IMAGE = $$(KERNEL_INITRAMFS_PREFIX).elf
   DEVICE_PROFILE :=
   DEVICE_DTS :=
@@ -576,6 +577,8 @@ $(eval $(call bcm63xxCfe,HG553,HG553,hg553,HW553,6358,--rsa-signature "EchoLife_
 $(eval $(call bcm63xxCfe,HG556a_AB,HG556a_A,hg556a-a,HW556,6358,--rsa-signature "EchoLife_HG556a" --image-offset 0x20000 --block-size 0x10000 --tag-version 8))
 $(eval $(call bcm63xxCfe,HG556a_AB,HG556a_B,hg556a-b,HW556,6358,--rsa-signature "EchoLife_HG556a" --image-offset 0x20000 --block-size 0x20000 --tag-version 8))
 $(eval $(call bcm63xxCfe,HG556a_C,HG556a_C,hg556a-c,HW556,6358,--rsa-signature "EchoLife_HG556a" --image-offset 0x20000 --block-size 0x20000 --tag-version 8))
+# Huawei HG622
+$(eval $(call bcm63xxCfe,HG622,HG622,hg622,96368MVWG_hg622,6368,--image-offset 0x20000 --block-size 0x20000 --tag-version 7 --pad 8))
 # Huawei HG655b
 $(eval $(call bcm63xxCfe,HG655b,HG655b,hg655b,HW65x,6368,--image-offset 0x20000 --tag-version 7 --pad 4))
 # Inteno VG50
@@ -583,7 +586,7 @@ $(eval $(call bcm63xxCfeRamdisk,VG50,vg50,vg50,VW6339GU,63268))
 # Inventel Livebox 1
 $(eval $(call bcm63xxRedBoot,Livebox,livebox,livebox-blue-5g))
 # Netgear CVG834G
-$(eval $(call bcm33xxHcsRamdisk,CVG834G,cvg834g,cvg834g,a020,0001,0022))
+$(eval $(call bcm33xxHcsRamdisk,CVG834G,cvg834g,cvg834g,0xa020,0001,0022))
 # Netgear DG834GT/PN
 $(eval $(call bcm63xxCfe,DG834GTPN,DG834GT_PN,dg834gtpn,96348GW-10,6348))
 # Netgear DG834G v4
@@ -592,6 +595,8 @@ $(eval $(call bcm63xxCfeRamdisk,DG834GV4,DG834GTv4,dg834g_v4,96348W3,6348))
 $(eval $(call bcm63xxCfeNetgear,DGND3700v1_3800B,DGND3700v1,dgnd3700v1,96368MVWG,6368,--image-offset 0x20000 --block-size 0x20000,U12L144T01_NETGEAR_NEWLED,1))
 # Netgear DGND3800B
 $(eval $(call bcm63xxCfeNetgear,DGND3700v1_3800B,DGND3800B,dgnd3700v1,96368MVWG,6368,--image-offset 0x20000 --block-size 0x20000,U12L144T11_NETGEAR_NEWLED,1))
+# NuCom R5010UNv2
+$(eval $(call bcm63xxCfe,R5010UNV2,R5010UNv2,r5010unv2,96328ang,6328,--pad 8))
 # Pirelli Alice Gate VoIP 2 Plus Wi-Fi AGPF-S0
 $(eval $(call bcm63xxCfe,AGPF_S0,AGV2+W,agpf-s0,AGPF-S0,6358,--block-size 0x20000 --image-offset 0x20000 --signature2 IMAGE --tag-version 8))
 # Pirelli A226G

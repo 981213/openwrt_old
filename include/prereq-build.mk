@@ -60,15 +60,25 @@ $(eval $(call TestHostCommand,ncurses, \
 	echo 'int main(int argc, char **argv) { initscr(); return 0; }' | \
 		gcc -include ncurses.h -x c -o $(TMP_DIR)/a.out - -lncurses))
 
+ifeq ($(HOST_OS),Linux)
+  zlib_link_flags := -Wl,-Bstatic -lz -Wl,-Bdynamic
+else
+  zlib_link_flags := -lz
+endif
+
 $(eval $(call TestHostCommand,zlib, \
-	Please install zlib. (Missing libz.so or zlib.h), \
+	Please install a static zlib. (Missing libz.a or zlib.h), \
 	echo 'int main(int argc, char **argv) { gzdopen(0, "rb"); return 0; }' | \
-		gcc -include zlib.h -x c -o $(TMP_DIR)/a.out - -lz))
+		gcc -include zlib.h -x c -o $(TMP_DIR)/a.out - $(zlib_link_flags)))
 
 $(eval $(call TestHostCommand,libssl, \
 	Please install the openssl library (with development headers), \
 	echo 'int main(int argc, char **argv) { SSL_library_init(); return 0; }' | \
-		gcc -include openssl/ssl.h -x c -o $(TMP_DIR)/a.out - -lcrypto -lssl))
+		gcc $(HOST_CFLAGS) -include openssl/ssl.h -x c -o $(TMP_DIR)/a.out - -lcrypto -lssl $(HOST_LDFLAGS)))
+
+$(eval $(call TestHostCommand,perl-thread-queue, \
+	Please install the Perl Thread::Queue module, \
+	perl -MThread::Queue -e 1))
 
 
 $(eval $(call SetupHostCommand,tar,Please install GNU 'tar', \
@@ -144,14 +154,14 @@ $(eval $(call SetupHostCommand,python,Please install Python 2.x, \
 $(eval $(call SetupHostCommand,svn,Please install the Subversion client, \
 	svn --version | grep Subversion))
 
-$(eval $(call SetupHostCommand,git,Please install Git (git-core) >= 1.6.5, \
-	git clone 2>&1 | grep -- --recursive))
+$(eval $(call SetupHostCommand,git,Please install Git (git-core) >= 1.7.12.2, \
+	git --exec-path | xargs -I % -- grep -q -- --recursive %/git-submodule))
 
 $(eval $(call SetupHostCommand,file,Please install the 'file' package, \
 	file --version 2>&1 | grep file))
 
 $(eval $(call SetupHostCommand,openssl,Please install the 'openssl' utility, \
-	openssl version | grep OpenSSL))
+	openssl version | grep '\(OpenSSL\|LibreSSL\)'))
 
 
 # Install ldconfig stub

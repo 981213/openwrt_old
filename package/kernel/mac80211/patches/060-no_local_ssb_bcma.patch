@@ -1,9 +1,9 @@
 --- a/.local-symbols
 +++ b/.local-symbols
-@@ -449,43 +449,6 @@ USB_CDC_PHONET=
- USB_IPHETH=
+@@ -476,44 +476,6 @@ USB_IPHETH=
  USB_SIERRA_NET=
  USB_VL600=
+ USB_NET_CH9200=
 -SSB_POSSIBLE=
 -SSB=
 -SSB_SPROM=
@@ -15,6 +15,7 @@
 -SSB_PCMCIAHOST=
 -SSB_SDIOHOST_POSSIBLE=
 -SSB_SDIOHOST=
+-SSB_HOST_SOC=
 -SSB_SILENT=
 -SSB_DEBUG=
 -SSB_SERIAL=
@@ -44,8 +45,8 @@
  NFC=
  NFC_DIGITAL=
  NFC_NCI=
---- a/drivers/net/wireless/b43/main.c
-+++ b/drivers/net/wireless/b43/main.c
+--- a/drivers/net/wireless/broadcom/b43/main.c
++++ b/drivers/net/wireless/broadcom/b43/main.c
 @@ -2866,7 +2866,7 @@ static struct ssb_device *b43_ssb_gpio_d
  {
  	struct ssb_bus *bus = dev->dev->sdev->bus;
@@ -64,8 +65,8 @@
  	if (dev->dev->bus_type == B43_BUS_SSB &&
  	    dev->dev->sdev->bus->bustype == SSB_BUSTYPE_PCI &&
  	    dev->dev->sdev->bus->pcicore.dev->id.revision <= 10)
---- a/drivers/net/wireless/b43legacy/main.c
-+++ b/drivers/net/wireless/b43legacy/main.c
+--- a/drivers/net/wireless/broadcom/b43legacy/main.c
++++ b/drivers/net/wireless/broadcom/b43legacy/main.c
 @@ -1937,7 +1937,7 @@ static int b43legacy_gpio_init(struct b4
  	if (dev->dev->id.revision >= 2)
  		mask  |= 0x0010; /* FIXME: This is redundant. */
@@ -84,8 +85,8 @@
  	pcidev = bus->pcicore.dev;
  #endif
  	gpiodev = bus->chipco.dev ? : pcidev;
---- a/drivers/net/wireless/brcm80211/brcmsmac/Makefile
-+++ b/drivers/net/wireless/brcm80211/brcmsmac/Makefile
+--- a/drivers/net/wireless/broadcom/brcm80211/brcmsmac/Makefile
++++ b/drivers/net/wireless/broadcom/brcm80211/brcmsmac/Makefile
 @@ -43,6 +43,6 @@ brcmsmac-y := \
  	brcms_trace_events.o \
  	debug.o
@@ -94,8 +95,8 @@
 +brcmsmac-$(CONFIG_BCMA_DRIVER_GPIO) += led.o
  
  obj-$(CPTCFG_BRCMSMAC)	+= brcmsmac.o
---- a/drivers/net/wireless/brcm80211/brcmsmac/led.h
-+++ b/drivers/net/wireless/brcm80211/brcmsmac/led.h
+--- a/drivers/net/wireless/broadcom/brcm80211/brcmsmac/led.h
++++ b/drivers/net/wireless/broadcom/brcm80211/brcmsmac/led.h
 @@ -22,7 +22,7 @@ struct brcms_led {
  	bool active_low;
  };
